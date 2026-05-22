@@ -14,13 +14,14 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Prevent general page scrolling so controls stay fully in view */
+    /* Let the browser handle standard scrollbar layouts cleanly if window is extremely small */
     body {
-      overflow: hidden;
       margin: 0;
       padding: 0;
-      height: 100vh;
+      min-height: 100vh;
       width: 100vw;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     /* Sleek custom scrollbars for interactive elements */
     ::-webkit-scrollbar {
@@ -41,18 +42,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-  <div id="root" class="h-full w-full"></div>
+  <div id="root" class="w-full"></div>
 
   <!-- React & Babel Transpiled Script -->
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
 
-    // --- GAME CONSTANTS ---
+    // --- GAME GRID CONSTANTS ---
     const GRID_W = 20;
     const GRID_H = 15;
-    const CELL_SIZE = 40; // Pixels per grid square (represents 1cm)
-    const CANVAS_WIDTH = GRID_W * CELL_SIZE; // 800px
-    const CANVAS_HEIGHT = GRID_H * CELL_SIZE; // 600px
 
     const INITIAL_BLOCKS = [
       { x: 0.5, y: 0.5 }, // Corner block
@@ -576,6 +574,7 @@
       return true;
     };
 
+    // --- MAIN COMPONENT ---
     const App = () => {
       const canvasRef = useRef(null);
       const [levelIdx, setLevelIdx] = useState(0);
@@ -584,15 +583,53 @@
       const [message, setMessage] = useState('');
       const [history, setHistory] = useState([]); 
 
+      // Responsive Grid Cell Sizing State
+      const [cellSize, setCellSize] = useState(40);
+
+      // Memoized Dynamic Canvas scale limits
+      const canvasWidth = useMemo(() => GRID_W * cellSize, [cellSize]);
+      const canvasHeight = useMemo(() => GRID_H * cellSize, [cellSize]);
+
+      // Responsive Size Tracker Hook
+      useEffect(() => {
+        const handleResize = () => {
+          // Reserve layout widths for left column + right sidebar + outer layout gaps
+          const availableW = window.innerWidth - (window.innerWidth >= 1024 ? 420 : 48);
+          const availableH = window.innerHeight - (window.innerWidth >= 1024 ? 180 : 460);
+          
+          // Calculate the largest cellSize that perfectly fits the grid constraints
+          const widthRatio = availableW / GRID_W;
+          const heightRatio = availableH / GRID_H;
+          const calculatedSize = Math.min(widthRatio, heightRatio);
+          
+          // Clamp cellSize to safe ranges
+          const finalSize = Math.max(18, Math.min(40, Math.floor(calculatedSize)));
+          setCellSize(finalSize);
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, [levelIdx]);
+
+      // Drag State Tracker
       const [isDragging, setIsDragging] = useState(false);
+
+      // Custom Perk Unlocks
       const [colorPickerUnlocked, setColorPickerUnlocked] = useState(false);
       const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0]);
+
+      // Trophy Screen triggers
       const [showTrophyCelebration, setShowTrophyCelebration] = useState(false);
+
+      // Challenge conditions satisfied this run
       const [challengeCompleted, setChallengeCompleted] = useState(false);
 
+      // Current Shape State
       const [pivot, setPivot] = useState({ x: 0, y: 0 });
       const [blocks, setBlocks] = useState([]);
 
+      // Command UI State
       const [activeTab, setActiveTab] = useState('translate');
       const [transDistX, setTransDistX] = useState(0);
       const [transDirX, setTransDirX] = useState('right');
@@ -602,10 +639,12 @@
       const [rotDir, setRotDir] = useState('cw'); 
       const [reflectAxis, setReflectAxis] = useState('vertical'); 
 
+      // Dynamically fetch current active configuration
       const level = useMemo(() => {
         return LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx]);
 
+      // Handle Level or Variation load
       useEffect(() => {
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
@@ -616,6 +655,7 @@
         resetCommandUI();
       }, [level]);
 
+      // Automatically select a random variation on level index swap
       useEffect(() => {
         const randomVarIdx = Math.floor(Math.random() * 5);
         setVariationIdx(randomVarIdx);
@@ -628,6 +668,7 @@
         setReflectAxis('vertical');
       };
 
+      // Select a new random puzzle from the database for the active level
       const rerollVariation = () => {
         let nextVarIdx;
         do {
@@ -637,6 +678,7 @@
         setShowTrophyCelebration(false);
       };
 
+      // Calculate pending preview transformation (the "Preview")
       const pendingState = useMemo(() => {
         let nextPivot = { ...pivot };
         let nextBlocks = [...blocks];
@@ -668,25 +710,30 @@
         return { pivot: nextPivot, blocks: nextBlocks };
       }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, reflectAxis]);
 
+      // Execute Command
       const commitMovement = () => {
         if (status !== 'playing') return;
 
+        // Record action context
         const actionRecord = { pivot, blocks, type: activeTab };
         const updatedHistory = [...history, actionRecord];
         setHistory(updatedHistory);
 
         const absPendingCoords = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
         
+        // Check Collision
         if (checkCollision(absPendingCoords, level.obstacles)) {
           setStatus('crashed');
           setMessage("Crash! The shape hit an obstacle or moved out of grid bounds.");
           return;
         }
 
+        // Apply Transformation
         setPivot(pendingState.pivot);
         setBlocks(pendingState.blocks);
         resetCommandUI();
 
+        // Check Win Condition
         const targetAbsCoords = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         if (checkWin(absPendingCoords, targetAbsCoords)) {
           setStatus('won');
@@ -727,6 +774,7 @@
         resetCommandUI();
       };
 
+      // --- MOUSE & TOUCH INTERACTION ON CANVAS ---
       const getCanvasMousePos = (e) => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
@@ -737,8 +785,8 @@
         const cx = clientX - rect.left;
         const cy = clientY - rect.top;
         
-        const gx = cx / CELL_SIZE;
-        const gy = (CANVAS_HEIGHT - cy) / CELL_SIZE;
+        const gx = cx / cellSize;
+        const gy = (canvasHeight - cy) / cellSize;
         return { x: gx, y: gy };
       };
 
@@ -773,61 +821,65 @@
         setIsDragging(false);
       };
 
+      // --- RENDERING CANVAS ---
       useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = CANVAS_WIDTH * dpr;
-        canvas.height = CANVAS_HEIGHT * dpr;
+        canvas.width = canvasWidth * dpr;
+        canvas.height = canvasHeight * dpr;
         ctx.scale(dpr, dpr);
 
-        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         const getCellRect = (gx, gy) => {
           return {
-            x: gx * CELL_SIZE,
-            y: CANVAS_HEIGHT - (gy + 1) * CELL_SIZE,
-            w: CELL_SIZE,
-            h: CELL_SIZE
+            x: gx * cellSize,
+            y: canvasHeight - (gy + 1) * cellSize,
+            w: cellSize,
+            h: cellSize
           };
         };
 
         const getVertexPos = (vx, vy) => {
           return {
-            cx: vx * CELL_SIZE,
-            cy: CANVAS_HEIGHT - vy * CELL_SIZE
+            cx: vx * cellSize,
+            cy: canvasHeight - vy * cellSize
           };
         };
 
+        // 1. Draw Grid Paper Background (white base, grey grids)
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        ctx.strokeStyle = '#e5e7eb'; 
+        ctx.strokeStyle = '#e5e7eb'; // light gray-200
         ctx.lineWidth = 1;
         for (let x = 0; x <= GRID_W; x++) {
           ctx.beginPath(); 
-          ctx.moveTo(x * CELL_SIZE, 0); 
-          ctx.lineTo(x * CELL_SIZE, CANVAS_HEIGHT); 
+          ctx.moveTo(x * cellSize, 0); 
+          ctx.lineTo(x * cellSize, canvasHeight); 
           ctx.stroke();
         }
         for (let y = 0; y <= GRID_H; y++) {
           ctx.beginPath(); 
-          ctx.moveTo(0, y * CELL_SIZE); 
-          ctx.lineTo(CANVAS_WIDTH, y * CELL_SIZE); 
+          ctx.moveTo(0, y * cellSize); 
+          ctx.lineTo(canvasWidth, y * cellSize); 
           ctx.stroke();
         }
 
-        ctx.fillStyle = '#9ca3af'; 
+        // Grid Coordinates / Rule Lines
+        ctx.fillStyle = '#9ca3af'; // gray-400
         ctx.font = '10px monospace';
         for (let x = 1; x < GRID_W; x++) {
-          ctx.fillText(x, x * CELL_SIZE + 4, CANVAS_HEIGHT - 4);
+          ctx.fillText(x, x * cellSize + 4, canvasHeight - 4);
         }
         for (let y = 1; y < GRID_H; y++) {
-          ctx.fillText(y, 4, CANVAS_HEIGHT - y * CELL_SIZE - 4);
+          ctx.fillText(y, 4, canvasHeight - y * cellSize - 4);
         }
 
+        // 2. Draw Target Silhouette (Green)
         const targetAbs = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'; 
         ctx.strokeStyle = '#16a34a'; 
@@ -838,17 +890,19 @@
           ctx.fillRect(x, y, w, h);
           ctx.strokeRect(x, y, w, h);
         });
-        ctx.setLineDash([]); 
+        ctx.setLineDash([]); // Reset line dash
 
-        ctx.fillStyle = '#fee2e2'; 
+        // 3. Draw Obstacles (Red/Dark Red crosshatched)
+        ctx.fillStyle = '#fee2e2'; // Light red background for obstacle cells
         level.obstacles.forEach(obs => {
           const { x, y, w, h } = getCellRect(obs.x, obs.y);
           ctx.fillRect(x, y, w, h);
           
-          ctx.strokeStyle = '#ef4444'; 
+          ctx.strokeStyle = '#ef4444'; // Red borders
           ctx.lineWidth = 1.5;
           ctx.strokeRect(x, y, w, h);
 
+          // Inner stripes
           ctx.strokeStyle = '#f87171';
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -857,13 +911,14 @@
           ctx.stroke();
         });
 
+        // 4. Draw Ghost (Preview / Proposed Step)
         const isMoving = pendingState.pivot.x !== pivot.x || 
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
         
         if (isMoving && status === 'playing') {
           const ghostAbs = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
-          ctx.fillStyle = 'rgba(156, 163, 175, 0.45)'; 
+          ctx.fillStyle = 'rgba(156, 163, 175, 0.45)'; // Semi-transparent grey
           ctx.strokeStyle = '#4b5563';
           ctx.setLineDash([4, 4]);
           ctx.lineWidth = 2;
@@ -874,6 +929,7 @@
           });
           ctx.setLineDash([]);
 
+          // Draw Ghost Pivot
           const ghostPivotCanvas = getVertexPos(pendingState.pivot.x, pendingState.pivot.y);
           ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
           ctx.beginPath();
@@ -881,6 +937,7 @@
           ctx.fill();
         }
 
+        // 5. Draw Actual Shape (Blue or custom unlocked color)
         const currentAbs = getAbsoluteCoords(pivot, blocks);
         ctx.fillStyle = selectedColor.fill; 
         ctx.strokeStyle = selectedColor.border; 
@@ -891,8 +948,9 @@
           ctx.strokeRect(x, y, w, h);
         });
 
+        // 6. Draw Solid Pivot Handle (Red Circle at the vertex intersection)
         const pivotCanvas = getVertexPos(pivot.x, pivot.y);
-        ctx.fillStyle = '#ef4444'; 
+        ctx.fillStyle = '#ef4444'; // Red handle
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -900,8 +958,9 @@
         ctx.fill();
         ctx.stroke();
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, cellSize, canvasWidth, canvasHeight]);
 
+      // Command logs helper
       const moveTally = useMemo(() => {
         return {
           t: history.filter(h => h.type === 'translate').length,
@@ -910,6 +969,7 @@
         };
       }, [history]);
 
+      // --- UI COMPONENTS ---
       const NumberSelect = ({ value, onChange, max }) => (
         <select 
           value={value} 
@@ -976,6 +1036,7 @@
       return (
         <div className="min-h-screen bg-gray-100 p-4 font-sans flex flex-col items-center justify-center">
           
+          {/* Header Panel */}
           <div className="w-full max-w-[1200px] mb-3 flex flex-col md:flex-row justify-between items-start md:items-end gap-2">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
@@ -1005,9 +1066,14 @@
             </div>
           </div>
 
+          {/* Main Box Area */}
           <div className="w-full max-w-[1200px] flex flex-col lg:flex-row gap-4 items-stretch">
             
-            <div className="flex-1 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between h-[680px]">
+            {/* LEFT COMPONENT: Board Display Panel (Locked to calculated canvas bounds) */}
+            <div 
+              className="flex-1 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between"
+              style={{ height: window.innerWidth >= 1024 ? `${canvasHeight + 110}px` : 'auto' }}
+            >
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
                   {level.title}
@@ -1026,7 +1092,7 @@
               
               <div 
                 className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner mx-auto" 
-                style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+                style={{ width: canvasWidth, height: canvasHeight }}
               >
                 <canvas 
                   ref={canvasRef}
@@ -1038,13 +1104,14 @@
                   onTouchMove={handleInteractionMove}
                   onTouchEnd={handleInteractionEnd}
                   style={{ 
-                    width: `${CANVAS_WIDTH}px`, 
-                    height: `${CANVAS_HEIGHT}px`, 
+                    width: `${canvasWidth}px`, 
+                    height: `${canvasHeight}px`, 
                     display: 'block',
                     cursor: isDragging ? 'grabbing' : 'grab'
                   }}
                 />
                 
+                {/* Overlay messages */}
                 {status !== 'playing' && !showTrophyCelebration && (
                   <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
                     <h3 className={`text-3xl font-black mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
@@ -1086,6 +1153,7 @@
                   </div>
                 )}
 
+                {/* MARIO KART CELEBRATION */}
                 {showTrophyCelebration && (
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
                     <div className="relative mb-4 animate-bounce">
@@ -1137,8 +1205,13 @@
               </div>
             </div>
 
-            <div className="w-full lg:w-[360px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between h-[680px] overflow-hidden">
+            {/* RIGHT COMPONENT: Action Control Panel */}
+            <div 
+              className="w-full lg:w-[360px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden"
+              style={{ height: window.innerWidth >= 1024 ? `${canvasHeight + 110}px` : 'auto' }}
+            >
               
+              {/* Main Action Tabs */}
               <div className="flex bg-slate-100 border-b">
                 {['translate', 'rotate', 'reflect'].map(tab => (
                   <button
@@ -1152,13 +1225,16 @@
                 ))}
               </div>
 
+              {/* Interactive Console HUD */}
               <div className="p-4 flex-1 flex flex-col justify-between gap-3">
                 
+                {/* Command Configurator */}
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Command Builder</h3>
                   {renderCommandSentence()}
                 </div>
 
+                {/* Live Stats Tally - Highly Compressed */}
                 <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 text-xs">
                   <div className="font-bold text-slate-700 mb-1.5 flex justify-between items-center">
                     <span>Active Movement counters</span>
@@ -1180,6 +1256,7 @@
                   </div>
                 </div>
 
+                {/* Customizer Tray - Merged inside main view cleanly */}
                 <div className="border-t border-dashed pt-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
                     <span>Custom block Color</span>
@@ -1208,11 +1285,13 @@
                   )}
                 </div>
 
+                {/* Explainer / Hint Banner */}
                 <div className="bg-yellow-50/70 border-l-2 border-yellow-400 p-2.5 text-[11px] text-yellow-900 rounded-r-lg">
                   <p className="font-bold mb-0.5">Ghost Preview Mode Active</p>
                   <p>Configure parameters above or <span className="font-bold">drag the red handle on the grid</span> to test your translations before clicking Commit.</p>
                 </div>
 
+                {/* Primary Action Commit Dock */}
                 <div className="flex flex-col gap-2 pt-2 border-t">
                   <button 
                     onClick={commitMovement}
