@@ -14,7 +14,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Lock the main page viewport to 100% height to prevent any outside scrolling */
+    /* Prevent general page scrolling to keep layout fully responsive and viewport-bound */
     html, body {
       margin: 0;
       padding: 0;
@@ -616,6 +616,17 @@
       { name: 'Pink Magenta', fill: 'rgba(236, 72, 153, 0.8)', border: '#be185d' },
     ];
 
+    // -- GLOBAL NUMBER SELECT COMPONENT (Moved out of App render to fix focus/dropdown unmount bug) --
+    const NumberSelect = ({ value, onChange, max }) => (
+      <select 
+        value={value} 
+        onChange={e => onChange(parseInt(e.target.value))} 
+        className="mx-1 px-1.5 py-0.5 border rounded bg-white font-mono text-base font-bold shadow-sm"
+      >
+        {[...Array(max + 1).keys()].map(n => <option key={n} value={n}>{n}</option>)}
+      </select>
+    );
+
     const getAbsoluteCoords = (pivot, blocks) => {
       return blocks.map(b => ({ x: pivot.x + b.x, y: pivot.y + b.y }));
     };
@@ -1169,17 +1180,6 @@
           setGameStarted(true);
         }
       };
-
-      // --- UI COMPONENTS ---
-      const NumberSelect = ({ value, onChange, max }) => (
-        <select 
-          value={value} 
-          onChange={e => onChange(parseInt(e.target.value))} 
-          className="mx-1 px-1.5 py-0.5 border rounded bg-white font-mono text-base font-bold shadow-sm"
-        >
-          {[...Array(max + 1).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
-      );
 
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
