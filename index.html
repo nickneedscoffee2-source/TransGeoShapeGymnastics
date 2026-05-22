@@ -22,7 +22,7 @@
       width: 100%;
       overflow: hidden;
     }
-    /* Clean custom scrollbars for side inputs and details */
+    /* Sleek custom scrollbars for interactive elements */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -646,11 +646,26 @@
 
       // Student Account Setup States
       const [studentName, setStudentName] = useState('');
+      const [difficulty, setDifficulty] = useState('medium'); // easy, medium, expert
       const [gameStarted, setGameStarted] = useState(false);
+
+      // Lives, Continues & Game Over States
+      const [lives, setLives] = useState(3);
+      const [continues, setContinues] = useState(2);
+      const [isGameOver, setIsGameOver] = useState(false);
+      const [showContinueOffer, setShowContinueOffer] = useState(false);
 
       // Score Tracking States
       const [sheetStatus, setSheetStatus] = useState('idle'); // idle, sending, success, error
-      const [seconds, setSeconds] = useState(0);
+      
+      // Dynamic max time allocation based on difficulty selection
+      const maxTimeLimit = useMemo(() => {
+        if (difficulty === 'easy') return 180;
+        if (difficulty === 'expert') return 60;
+        return 120; // default medium
+      }, [difficulty]);
+
+      const [secondsLeft, setSecondsLeft] = useState(120);
 
       const [levelIdx, setLevelIdx] = useState(0);
       const [variationIdx, setVariationIdx] = useState(0);
@@ -698,11 +713,11 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSeconds(0);
+        setSecondsLeft(maxTimeLimit); // Reset dynamic countdown timer
         setChallengeCompleted(false);
         setSheetStatus('idle');
         resetCommandUI();
-      }, [level, gameStarted]);
+      }, [level, gameStarted, maxTimeLimit]);
 
       // Automatically select a random variation on level index swap
       useEffect(() => {
@@ -710,6 +725,26 @@
         const randomVarIdx = Math.floor(Math.random() * 5);
         setVariationIdx(randomVarIdx);
       }, [levelIdx, gameStarted]);
+
+      // Live Countdown Timer Hook
+      useEffect(() => {
+        let timerId = null;
+        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer) {
+          timerId = setInterval(() => {
+            setSecondsLeft(prev => {
+              if (prev <= 1) {
+                clearInterval(timerId);
+                handleLifeLoss("Time ran out! You lost a life.");
+                return maxTimeLimit;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+        return () => {
+          if (timerId) clearInterval(timerId);
+        };
+      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit]);
 
       const resetCommandUI = () => {
         setTransDistX(0);
@@ -760,10 +795,65 @@
         return { pivot: nextPivot, blocks: nextBlocks };
       }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, reflectAxis]);
 
+      // Handle Life Loss (Due to crashes or timer)
+      const handleLifeLoss = (reasonMessage) => {
+        const nextLives = lives - 1;
+        if (nextLives > 0) {
+          setLives(nextLives);
+          setPivot(level.startPivot);
+          setBlocks(level.startBlocks);
+          setHistory([]);
+          setSecondsLeft(maxTimeLimit);
+          resetCommandUI();
+          setStatus('playing');
+          setMessage(`${reasonMessage} Board reset!`);
+          
+          // Flash temporary notification alert
+          const tempMsg = reasonMessage;
+          setMessage(`${tempMsg} Lives Remaining: ${nextLives}`);
+        } else {
+          setLives(0);
+          if (continues > 0) {
+            setShowContinueOffer(true);
+          } else {
+            setIsGameOver(true);
+          }
+        }
+      };
+
+      // Continue action logic
+      const handleContinue = () => {
+        if (continues > 0) {
+          setContinues(prev => prev - 1);
+          setLives(3);
+          setShowContinueOffer(false);
+          setPivot(level.startPivot);
+          setBlocks(level.startBlocks);
+          setHistory([]);
+          setSecondsLeft(maxTimeLimit);
+          resetCommandUI();
+          setStatus('playing');
+          setMessage("Continued! Lives restored to 3.");
+        }
+      };
+
+      // Game Over restart logic
+      const handleResetToLobby = () => {
+        setStudentName('');
+        setGameStarted(false);
+        setLives(3);
+        setContinues(2);
+        setIsGameOver(false);
+        setShowTrophyCelebration(false);
+        setShowContinueOffer(false);
+        setLevelIdx(0);
+        setVariationIdx(0);
+      };
+
       // Calculate score breakdown matching teacher's spreadsheet
-      const calculateScore = (moveCount, finalSeconds, isChallengeMet) => {
+      const calculateScore = (moveCount, finalSecondsLeft, isChallengeMet) => {
         const baseScore = 1000;
-        const speedBonus = Math.max(0, (120 - finalSeconds) * 5);
+        const speedBonus = finalSecondsLeft * 5;
         const efficiencyBonus = Math.max(0, (level.parMoves - moveCount) * 200);
         const challengeBonus = isChallengeMet ? 500 : 0;
         return baseScore + speedBonus + efficiencyBonus + challengeBonus;
@@ -781,12 +871,12 @@
         const rotations = finalHistory.filter(h => h.type === 'rotate').length;
         const reflections = finalHistory.filter(h => h.type === 'reflect').length;
         const totalMoves = finalHistory.length;
-        const score = calculateScore(totalMoves, seconds, isChallengeMet);
+        const score = calculateScore(totalMoves, secondsLeft, isChallengeMet);
 
         // Construct standard class progress model payloads
         const payload = {
           studentName: studentName,
-          classPeriod: "N/A", // Automatically filled as N/A to keep Sheet Columns happy
+          classPeriod: difficulty.toUpperCase(), // Logs difficulty setting into sheets dashboard
           levelId: level.id,
           puzzleVariation: level.variationLabel,
           translations: translations,
@@ -794,7 +884,7 @@
           reflections: reflections,
           totalMoves: totalMoves,
           parMoves: level.parMoves,
-          time: seconds,
+          time: maxTimeLimit - secondsLeft, // Logs elapsed time
           solved: "Yes",
           challengeCompleted: isChallengeMet ? "Yes" : "No",
           score: score
@@ -816,7 +906,7 @@
 
       // Execute Command
       const commitMovement = () => {
-        if (status !== 'playing') return;
+        if (status !== 'playing' || isGameOver || showContinueOffer) return;
 
         // Record action context
         const actionRecord = { pivot, blocks, type: activeTab };
@@ -827,8 +917,7 @@
         
         // Check Collision
         if (checkCollision(absPendingCoords, level.obstacles)) {
-          setStatus('crashed');
-          setMessage("Crash! The shape hit an obstacle or moved out of grid bounds.");
+          handleLifeLoss("Collision! Your shape hit an obstacle or went out of bounds.");
           return;
         }
 
@@ -878,7 +967,7 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSeconds(0);
+        setSecondsLeft(maxTimeLimit);
         setChallengeCompleted(false);
         setSheetStatus('idle');
         resetCommandUI();
@@ -904,7 +993,7 @@
       };
 
       const handleInteractionStart = (e) => {
-        if (status !== 'playing') return;
+        if (status !== 'playing' || isGameOver || showContinueOffer) return;
         const mouseGrid = getCanvasMousePos(e);
         const distToPivot = Math.hypot(mouseGrid.x - pivot.x, mouseGrid.y - pivot.y);
         if (distToPivot < 0.45) {
@@ -914,7 +1003,7 @@
       };
 
       const handleInteractionMove = (e) => {
-        if (!isDragging || status !== 'playing') return;
+        if (!isDragging || status !== 'playing' || isGameOver || showContinueOffer) return;
         e.preventDefault();
         const mouseGrid = getCanvasMousePos(e);
         
@@ -1149,7 +1238,7 @@
       if (!gameStarted) {
         return (
           <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 flex flex-col gap-6">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 flex flex-col gap-6">
               
               <div className="text-center">
                 <div className="mx-auto w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4 animate-bounce">
@@ -1159,7 +1248,7 @@
                 <p className="text-sm text-slate-500 mt-1">Transform spatial figures & escape grid blockades</p>
               </div>
 
-              <form onSubmit={handleStartGame} className="flex flex-col gap-4">
+              <form onSubmit={handleStartGame} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Your Full Name</label>
                   <input
@@ -1170,6 +1259,32 @@
                     placeholder="Enter your first and last name..."
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-semibold shadow-sm transition-all"
                   />
+                </div>
+
+                {/* Difficulty Selector Form Field */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Select Difficulty</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { key: 'easy', label: 'Easy', desc: '3 Min Timer', color: 'border-green-500 text-green-700 bg-green-50' },
+                      { key: 'medium', label: 'Medium', desc: '2 Min Timer', color: 'border-blue-500 text-blue-700 bg-blue-50' },
+                      { key: 'expert', label: 'Expert', desc: '1 Min Timer', color: 'border-red-500 text-red-700 bg-red-50' }
+                    ].map((diff) => (
+                      <button
+                        key={diff.key}
+                        type="button"
+                        onClick={() => setDifficulty(diff.key)}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                          difficulty === diff.key 
+                            ? `${diff.color} ring-2 ring-offset-2 ring-blue-400 font-black scale-105 shadow-md`
+                            : 'border-slate-200 hover:bg-slate-50 font-semibold text-slate-500'
+                        }`}
+                      >
+                        <span className="text-sm">{diff.label}</span>
+                        <span className="text-[10px] opacity-80 mt-0.5">{diff.desc}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <button
@@ -1191,6 +1306,58 @@
         );
       }
 
+      // RENDER GAME OVER OR CONTINUE MODALS
+      if (isGameOver) {
+        return (
+          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
+              <div className="text-5xl">💀</div>
+              <h1 className="text-3xl font-black text-red-600">GAME OVER</h1>
+              <p className="text-slate-600 font-medium">
+                You used all of your lives and continues! Better luck next time, {studentName}.
+              </p>
+              <button
+                onClick={handleResetToLobby}
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg rounded-xl transition-all shadow-md active:scale-95"
+              >
+                Restart Game
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      if (showContinueOffer) {
+        return (
+          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900/90 p-4 z-50">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
+              <div className="text-5xl animate-pulse">🔄</div>
+              <h1 className="text-2xl font-black text-slate-800">Use a Continue?</h1>
+              <p className="text-slate-600 font-medium">
+                You lost all of your lives on this board! You can continue to keep your current progress.
+              </p>
+              <p className="text-sm font-bold text-purple-600">
+                Continues Remaining: {continues} / 2
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleContinue}
+                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl transition-all shadow-lg active:scale-95"
+                >
+                  Continue Game
+                </button>
+                <button
+                  onClick={handleResetToLobby}
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
+                >
+                  Give Up & Restart
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       // RENDER GAMEPLAY
       return (
         <div className="h-screen w-full bg-gray-100 p-4 flex flex-col items-center justify-between overflow-hidden">
@@ -1202,7 +1369,7 @@
                 📐 Transformational Geometry Arena
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Active Student: <span className="font-bold text-blue-600">{studentName}</span>
+                Active Student: <span className="font-bold text-blue-600">{studentName}</span> | Difficulty: <span className={`font-bold uppercase ${difficulty === 'expert' ? 'text-red-600' : difficulty === 'medium' ? 'text-blue-600' : 'text-green-600'}`}>{difficulty}</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-1">
@@ -1239,7 +1406,18 @@
                 
                 {/* Timer and Statistics Tracker HUD */}
                 <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
-                  <span className="text-slate-500">⏳ {seconds}s</span>
+                  <span className="text-red-500 flex items-center gap-0.5">
+                    {Array.from({ length: lives }).map((_, idx) => (
+                      <span key={idx}>❤️</span>
+                    ))}
+                    {Array.from({ length: 3 - lives }).map((_, idx) => (
+                      <span key={idx} className="opacity-30">🖤</span>
+                    ))}
+                  </span>
+                  <span className="text-slate-300">|</span>
+                  <span className={secondsLeft <= 15 ? "text-red-600 font-extrabold animate-pulse" : "text-slate-500"}>
+                    ⏱ {Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, '0')}
+                  </span>
                   <span className="text-slate-300">|</span>
                   <span className="text-slate-500">👟 {moveTally.total} Moves</span>
                 </div>
@@ -1277,7 +1455,7 @@
                   
                   {/* Overlay messages */}
                   {status !== 'playing' && !showTrophyCelebration && (
-                    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
                       <h3 className={`text-2xl md:text-3xl font-black mb-1 md:mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
                         {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
                       </h3>
@@ -1309,11 +1487,6 @@
                       )}
 
                       <div className="flex flex-wrap justify-center gap-1.5">
-                        {status === 'crashed' && (
-                          <button onClick={undo} className="px-3.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-xs md:text-sm rounded-lg transition-colors">
-                            Undo Last Move
-                          </button>
-                        )}
                         {status === 'won' && levelIdx < 5 && (
                           <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105">
                             Next Level
@@ -1326,27 +1499,58 @@
                     </div>
                   )}
 
-                  {/* MARIO KART CELEBRATION */}
+                  {/* DYNAMIC MARIO KART STYLE CELEBRATION */}
                   {showTrophyCelebration && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
-                      <div className="relative mb-3 animate-bounce">
-                        <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
-                          <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
-                          <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
-                          <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                          <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                          <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                          <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
-                          <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                          <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl md:text-3xl font-black text-amber-400 tracking-wide mb-1 animate-pulse">
-                        CONGRATULATIONS!
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
+                      
+                      {/* Expert Champion Sparkly Trophy vs Standard Trophy */}
+                      {difficulty === 'expert' ? (
+                        <div className="relative mb-3 animate-pulse">
+                          <svg className="w-36 h-36 md:w-48 md:h-48 drop-shadow-[0_0_35px_rgba(251,191,36,1)]" viewBox="0 0 100 100">
+                            {/* Star Sparkles */}
+                            <path d="M10,25 L15,20 L20,25 L15,30 Z" fill="#fff" className="animate-ping" />
+                            <path d="M80,20 L85,15 L90,20 L85,25 Z" fill="#fff" className="animate-ping" style={{animationDelay: '0.5s'}} />
+                            <path d="M45,10 L50,5 L55,10 L50,15 Z" fill="#fff" className="animate-ping" style={{animationDelay: '1s'}} />
+                            
+                            {/* Grand Double Handles */}
+                            <path d="M20,25 C5,25 5,45 20,55 Z" fill="#b45309" stroke="#fbbf24" strokeWidth="3" />
+                            <path d="M80,25 C95,25 95,45 80,55 Z" fill="#b45309" stroke="#fbbf24" strokeWidth="3" />
+                            
+                            {/* Giant Trophy Cup */}
+                            <path d="M25,20 L75,20 L70,55 C70,68 30,68 30,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="3" />
+                            <rect x="44" y="62" width="12" height="18" fill="#f59e0b" />
+                            <ellipse cx="50" cy="80" rx="25" ry="8" fill="#fbbf24" stroke="#f59e0b" strokeWidth="3" />
+                            
+                            {/* Expert Champion Medal on Cup */}
+                            <path d="M50,30 L55,38 L65,39 L57,46 L60,55 L50,50 L40,55 L43,46 L35,39 L45,38 Z" fill="#ef4444" stroke="#fff" strokeWidth="1" />
+                          </svg>
+                          <div className="absolute top-0 right-0 bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full rotate-12 shadow animate-bounce">
+                            EXPERT CHAMPION
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative mb-3 animate-bounce">
+                          <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
+                            <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
+                            <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
+                            <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                            <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                            <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                            <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
+                            <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                            <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
+                          </svg>
+                        </div>
+                      )}
+
+                      <h3 className={`font-black tracking-wide mb-1 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] ${difficulty === 'expert' ? 'text-3xl md:text-5xl text-yellow-400 animate-pulse' : 'text-2xl md:text-3xl text-amber-400'}`}>
+                        {difficulty === 'expert' ? '🏆 EXPERT CHAMPION! 🏆' : 'CONGRATULATIONS!'}
                       </h3>
-                      <p className="text-sm md:text-lg font-bold mb-1">You conquered all 5 core levels!</p>
+                      <p className="text-sm md:text-lg font-bold mb-1">
+                        {difficulty === 'expert' ? `${studentName}, you conquered the Arena under extreme time limits!` : `You conquered all 5 core levels, ${studentName}!`}
+                      </p>
                       <p className="text-[10px] md:text-xs text-slate-300 max-w-sm mb-4">
-                        Ready to tackle the ultimate challenge to unlock custom figure coloring?
+                        {difficulty === 'expert' ? "You solved the ultimate test. Ready to enter the Bonus Level and play with customized colors?" : "Ready to tackle the ultimate challenge to unlock custom figure coloring?"}
                       </p>
                       <div className="flex gap-2">
                         <button 
@@ -1379,7 +1583,7 @@
               </div>
             </div>
 
-            {/* RIGHT COMPONENT: Action Control Panel (Height matches perfectly and scrolls internally if needed) */}
+            {/* RIGHT COMPONENT: Action Control Panel */}
             <div className="w-full lg:w-[340px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between h-full min-h-0 overflow-hidden shrink-0">
               
               {/* Main Action Tabs */}
@@ -1466,7 +1670,7 @@
                 <div className="flex flex-col gap-2 pt-2 border-t shrink-0">
                   <button 
                     onClick={commitMovement}
-                    disabled={status !== 'playing'}
+                    disabled={status !== 'playing' || isGameOver || showContinueOffer}
                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-extrabold text-base rounded-lg shadow-md transition-all active:scale-[0.98]"
                   >
                     Commit Movement
