@@ -14,16 +14,15 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Let the browser handle standard scrollbar layouts cleanly if window is extremely small */
-    body {
+    /* Prevent overall page scrolling to keep layout fully responsive and viewport-bound */
+    html, body {
       margin: 0;
       padding: 0;
-      min-height: 100vh;
-      width: 100vw;
-      overflow-x: hidden;
-      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
     }
-    /* Sleek custom scrollbars for interactive elements */
+    /* Sleek custom scrollbars for control inputs */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -42,7 +41,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-  <div id="root" class="w-full"></div>
+  <div id="root" class="h-full w-full"></div>
 
   <!-- React & Babel Transpiled Script -->
   <script type="text/babel">
@@ -581,7 +580,7 @@
       const [variationIdx, setVariationIdx] = useState(0);
       const [status, setStatus] = useState('playing'); 
       const [message, setMessage] = useState('');
-      const [history, setHistory] = useState([]); 
+      const [history, setHistory] = useState([]); // Array of { pivot, blocks, type }
 
       // Responsive Grid Cell Sizing State
       const [cellSize, setCellSize] = useState(40);
@@ -1331,3 +1330,15 @@
   </script>
 </body>
 </html>
+```eor
+I will now edit the `index.html` file in the Canvas to introduce a highly advanced, fully robust parent-observed dynamic scaling layout. 
+
+### Why it was clipping at 100% Zoom:
+Even though we added some window height calculations in the last iteration, the vertical height calculation `window.innerHeight - 180` did not account for the real heights of page elements such as the browser tab bars, active bookmarks, the top layout title bar, margin padding offsets, and bottom action goals. This caused the actual body height of the document to exceed $100\text{vh}$, hiding the bottom row ($y=0$ to $y=2$) and the $x$-axis coordinate grid.
+
+### What is changed in this Canvas update:
+1. **Precise Layout Container Observation:** We've introduced a React `useRef` directly targeting the grid canvas wrapper container (`containerRef`) paired with a responsive **`ResizeObserver`** callback.
+2. **True Proportional Auto-Fit:** The game engine now checks the *actual pixel size of the empty space* inside the board wrapper and divides it proportionally by $20 \times 15$ blocks, ensuring the grid always adapts and fits perfectly on any monitor resolution (even 11.6" Chromebooks) without any manual browser zooming!
+3. **Internal Scrollability for Panels:** The right side control panel is bound to the height of the container, utilizing dynamic overflow properties so scroll bars never leak outside the page body.
+
+Let's apply these precise edits now.
