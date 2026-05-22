@@ -47,6 +47,10 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
 
+    // --- GOOGLE SHEETS INTEGRATION CONFIG ---
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    const GOOGLE_SCRIPT_URL = ""; 
+
     // --- GAME GRID CONSTANTS ---
     const GRID_W = 20;
     const GRID_H = 15;
@@ -68,6 +72,8 @@
           title: "Level 1 (Var A): Center Blockade",
           instructions: "Translate the shape around the central wall to fit into the green target outline.",
           challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          parMoves: 2,
+          variationLabel: "Var A",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -80,6 +86,8 @@
           title: "Level 1 (Var B): Upper Passage",
           instructions: "Navigate through the high corridor to arrive at the lower-right destination.",
           challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          parMoves: 2,
+          variationLabel: "Var B",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 2, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -92,6 +100,8 @@
           title: "Level 1 (Var C): The Divided Grid",
           instructions: "Move through the horizontal division gap to align with the target.",
           challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          parMoves: 2,
+          variationLabel: "Var C",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -104,6 +114,8 @@
           title: "Level 1 (Var D): Left to Right Slit",
           instructions: "Navigate the shape directly through the central slot.",
           challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          parMoves: 2,
+          variationLabel: "Var D",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 1, y: 6 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -116,6 +128,8 @@
           title: "Level 1 (Var E): Low Stepping Stones",
           instructions: "Use diagonal translation moves to bypass the vertical pillars.",
           challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          parMoves: 2,
+          variationLabel: "Var E",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 2, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -132,6 +146,8 @@
           title: "Level 2 (Var A): Gap Rotation",
           instructions: "You need to rotate the shape to pass safely through the narrow vertical gap.",
           challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          parMoves: 3,
+          variationLabel: "Var A",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -149,6 +165,8 @@
           title: "Level 2 (Var B): Horizontal Slot",
           instructions: "Rotate 180 degrees to navigate the horizontal tunnel.",
           challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          parMoves: 3,
+          variationLabel: "Var B",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -166,6 +184,8 @@
           title: "Level 2 (Var C): Low Pass Tunnel",
           instructions: "Maneuver and rotate the L-shape to make it slide through the floor opening.",
           challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          parMoves: 3,
+          variationLabel: "Var C",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -183,6 +203,8 @@
           title: "Level 2 (Var D): The Split Chimney",
           instructions: "Position and rotate the piece vertically to pass through the high gate.",
           challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          parMoves: 3,
+          variationLabel: "Var D",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -200,6 +222,8 @@
           title: "Level 2 (Var E): Labyrinth Gateway",
           instructions: "Perform a perfect turn inside the central chamber to slip into the right quadrant.",
           challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          parMoves: 3,
+          variationLabel: "Var E",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -221,6 +245,8 @@
           title: "Level 3 (Var A): Pivot Flop",
           instructions: "Combine translation and reflection to match the target's orientation.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          parMoves: 2,
+          variationLabel: "Var A",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -238,6 +264,8 @@
           title: "Level 3 (Var B): Horizontal Flip",
           instructions: "Use horizontal reflection to inverse the L-shape across the partition wall.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          parMoves: 2,
+          variationLabel: "Var B",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -255,6 +283,8 @@
           title: "Level 3 (Var C): High Divider Mirror",
           instructions: "Fling the shape into the upper compartment using reflection mechanics.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          parMoves: 2,
+          variationLabel: "Var C",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -272,6 +302,8 @@
           title: "Level 3 (Var D): Dual Post Mirror",
           instructions: "Align the shape across the dual central posts by translating then reflecting.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          parMoves: 2,
+          variationLabel: "Var D",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -289,6 +321,8 @@
           title: "Level 3 (Var E): Symmetric Gap",
           instructions: "Perform a flip of the shape to match the target nested inside the right corner.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          parMoves: 2,
+          variationLabel: "Var E",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
@@ -310,6 +344,8 @@
           title: "Level 4 (Var A): Zigzag Pillars",
           instructions: "Navigate through the central pillars by combining your moves efficiently.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          parMoves: 3,
+          variationLabel: "Var A",
           checkChallenge: (history) => {
             const t = history.filter(h => h.type === 'translate').length;
             const r = history.filter(h => h.type === 'rotate').length;
@@ -327,6 +363,8 @@
           title: "Level 4 (Var B): Horizontal Slalom",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          parMoves: 3,
+          variationLabel: "Var B",
           checkChallenge: (history) => {
             const t = history.filter(h => h.type === 'translate').length;
             const r = history.filter(h => h.type === 'rotate').length;
@@ -344,6 +382,8 @@
           title: "Level 4 (Var C): Checkerboard Maze",
           instructions: "Pass diagonal block walls requiring precise rotation and a single flip.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          parMoves: 3,
+          variationLabel: "Var C",
           checkChallenge: (history) => {
             const t = history.filter(h => h.type === 'translate').length;
             const r = history.filter(h => h.type === 'rotate').length;
@@ -361,6 +401,8 @@
           title: "Level 4 (Var D): Split Center Corridors",
           instructions: "Use all three transformation classes to weave through the center opening.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          parMoves: 3,
+          variationLabel: "Var D",
           checkChallenge: (history) => {
             const t = history.filter(h => h.type === 'translate').length;
             const r = history.filter(h => h.type === 'rotate').length;
@@ -378,6 +420,8 @@
           title: "Level 4 (Var E): S-Curve Siphon",
           instructions: "Navigate through the double bend layout to reach the goal area.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          parMoves: 3,
+          variationLabel: "Var E",
           checkChallenge: (history) => {
             const t = history.filter(h => h.type === 'translate').length;
             const r = history.filter(h => h.type === 'rotate').length;
@@ -399,6 +443,8 @@
           title: "Level 5 (Var A): Narrow Spiral Corridors",
           instructions: "Maneuver carefully inside the tight corridor to align with the target.",
           challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          parMoves: 5,
+          variationLabel: "Var A",
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 2, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -411,6 +457,8 @@
           title: "Level 5 (Var B): Dual-Chamber Maze",
           instructions: "Navigate through the tight gateway dividing the upper and lower grids.",
           challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          parMoves: 5,
+          variationLabel: "Var B",
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 3, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -423,6 +471,8 @@
           title: "Level 5 (Var C): Narrow Central Grid",
           instructions: "Guide the shape safely through a series of vertical gates.",
           challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          parMoves: 5,
+          variationLabel: "Var C",
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -435,6 +485,8 @@
           title: "Level 5 (Var D): The Forked Gateway",
           instructions: "Navigate through the tight upper tunnel, matching target orientations.",
           challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          parMoves: 5,
+          variationLabel: "Var D",
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 2, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -447,6 +499,8 @@
           title: "Level 5 (Var E): Inner Pipe Bypass",
           instructions: "Slide the block through a long single-width horizontal pipeline.",
           challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          parMoves: 5,
+          variationLabel: "Var E",
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 1, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
@@ -463,6 +517,8 @@
           title: "Bonus (Var A): Labyrinth Gauntlet",
           instructions: "Solve this legendary final puzzle. Reach the destination to unlock Custom Colors!",
           challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          parMoves: 6,
+          variationLabel: "Var A",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
@@ -479,6 +535,8 @@
           title: "Bonus (Var B): Spiral Gauntlet",
           instructions: "Weave deep through the spiral structure to place the L-shape in the central goal.",
           challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          parMoves: 6,
+          variationLabel: "Var B",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
@@ -495,6 +553,8 @@
           title: "Bonus (Var C): Alternating Pillars",
           instructions: "Pass through alternating high and low walls to arrive at the top-right.",
           challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          parMoves: 6,
+          variationLabel: "Var C",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
@@ -511,6 +571,8 @@
           title: "Bonus (Var D): The Center Ring",
           instructions: "Reach the target inside the central block cage by rotating through narrow apertures.",
           challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          parMoves: 6,
+          variationLabel: "Var D",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
@@ -527,6 +589,8 @@
           title: "Bonus (Var E): Narrow Double Keyhole",
           instructions: "Maneuver through dual interlocking keyholes to match the final flipped target.",
           challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          parMoves: 6,
+          variationLabel: "Var E",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
@@ -576,9 +640,20 @@
     // --- MAIN COMPONENT ---
     const App = () => {
       const canvasRef = useRef(null);
+      const containerRef = useRef(null);
+
+      // Student Account Setup States
+      const [studentName, setStudentName] = useState('');
+      const [classPeriod, setClassPeriod] = useState('');
+      const [gameStarted, setGameStarted] = useState(false);
+
+      // Score Tracking States
+      const [sheetStatus, setSheetStatus] = useState('idle'); // idle, sending, success, error
+      const [seconds, setSeconds] = useState(0);
+
       const [levelIdx, setLevelIdx] = useState(0);
       const [variationIdx, setVariationIdx] = useState(0);
-      const [status, setStatus] = useState('playing'); 
+      const [status, setStatus] = useState('playing'); // playing, won, crashed
       const [message, setMessage] = useState('');
       const [history, setHistory] = useState([]); // Array of { pivot, blocks, type }
 
@@ -589,27 +664,34 @@
       const canvasWidth = useMemo(() => GRID_W * cellSize, [cellSize]);
       const canvasHeight = useMemo(() => GRID_H * cellSize, [cellSize]);
 
-      // Responsive Size Tracker Hook
+      // Responsive Size Observer layout tracker hook
       useEffect(() => {
-        const handleResize = () => {
-          // Reserve layout widths for left column + right sidebar + outer layout gaps
-          const availableW = window.innerWidth - (window.innerWidth >= 1024 ? 420 : 48);
-          const availableH = window.innerHeight - (window.innerWidth >= 1024 ? 180 : 460);
-          
-          // Calculate the largest cellSize that perfectly fits the grid constraints
-          const widthRatio = availableW / GRID_W;
-          const heightRatio = availableH / GRID_H;
-          const calculatedSize = Math.min(widthRatio, heightRatio);
-          
-          // Clamp cellSize to safe ranges
-          const finalSize = Math.max(18, Math.min(40, Math.floor(calculatedSize)));
-          setCellSize(finalSize);
-        };
+        if (!containerRef.current || !gameStarted) return;
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-      }, [levelIdx]);
+        const observer = new ResizeObserver((entries) => {
+          for (let entry of entries) {
+            const { width, height } = entry.contentRect;
+            const calculatedSize = Math.min(width / GRID_W, height / GRID_H);
+            setCellSize(Math.max(16, Math.min(40, Math.floor(calculatedSize))));
+          }
+        });
+
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+      }, [gameStarted]);
+
+      // Live Timer/Stopwatch Hook
+      useEffect(() => {
+        let timerId = null;
+        if (status === 'playing' && gameStarted) {
+          timerId = setInterval(() => {
+            setSeconds(prev => prev + 1);
+          }, 1000);
+        }
+        return () => {
+          if (timerId) clearInterval(timerId);
+        };
+      }, [status, gameStarted]);
 
       // Drag State Tracker
       const [isDragging, setIsDragging] = useState(false);
@@ -645,20 +727,24 @@
 
       // Handle Level or Variation load
       useEffect(() => {
+        if (!gameStarted) return;
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
         setStatus('playing');
         setMessage('');
         setHistory([]);
+        setSeconds(0);
         setChallengeCompleted(false);
+        setSheetStatus('idle');
         resetCommandUI();
-      }, [level]);
+      }, [level, gameStarted]);
 
       // Automatically select a random variation on level index swap
       useEffect(() => {
+        if (!gameStarted) return;
         const randomVarIdx = Math.floor(Math.random() * 5);
         setVariationIdx(randomVarIdx);
-      }, [levelIdx]);
+      }, [levelIdx, gameStarted]);
 
       const resetCommandUI = () => {
         setTransDistX(0);
@@ -709,6 +795,60 @@
         return { pivot: nextPivot, blocks: nextBlocks };
       }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, reflectAxis]);
 
+      // Calculate score breakdown matching teacher's spreadsheet
+      const calculateScore = (moveCount, finalSeconds, isChallengeMet) => {
+        const baseScore = 1000;
+        const speedBonus = Math.max(0, (120 - finalSeconds) * 5);
+        const efficiencyBonus = Math.max(0, (level.parMoves - moveCount) * 200);
+        const challengeBonus = isChallengeMet ? 500 : 0;
+        return baseScore + speedBonus + efficiencyBonus + challengeBonus;
+      };
+
+      // Logging payload submission function to Google Sheets
+      const logProgressToGoogleSheets = async (finalHistory, isChallengeMet) => {
+        if (!GOOGLE_SCRIPT_URL) {
+          console.log("No Google Script App URL configured. Playing offline.");
+          return;
+        }
+
+        setSheetStatus('sending');
+        const translations = finalHistory.filter(h => h.type === 'translate').length;
+        const rotations = finalHistory.filter(h => h.type === 'rotate').length;
+        const reflections = finalHistory.filter(h => h.type === 'reflect').length;
+        const totalMoves = finalHistory.length;
+        const score = calculateScore(totalMoves, seconds, isChallengeMet);
+
+        // Construct standard class progress model payloads
+        const payload = {
+          studentName: studentName,
+          classPeriod: classPeriod || "N/A",
+          levelId: level.id,
+          puzzleVariation: level.variationLabel,
+          translations: translations,
+          rotations: rotations,
+          reflections: reflections,
+          totalMoves: totalMoves,
+          parMoves: level.parMoves,
+          time: seconds,
+          solved: "Yes",
+          challengeCompleted: isChallengeMet ? "Yes" : "No",
+          score: score
+        };
+
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Avoids cross-origin preflight blockers
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          setSheetStatus('success');
+        } catch (error) {
+          console.error("Sheets log pipeline broken: ", error);
+          setSheetStatus('error');
+        }
+      };
+
       // Execute Command
       const commitMovement = () => {
         if (status !== 'playing') return;
@@ -739,13 +879,16 @@
           const isChallengeMet = level.checkChallenge(updatedHistory);
           setChallengeCompleted(isChallengeMet);
 
+          // Submit student score metrics asynchronously
+          logProgressToGoogleSheets(updatedHistory, isChallengeMet);
+
           if (level.id === 5) {
             setTimeout(() => {
               setShowTrophyCelebration(true);
             }, 600);
           } else if (level.id === 6) {
             setColorPickerUnlocked(true);
-            setMessage("Amazing! You beat the Bonus Level and unlocked Custom Shape Colors! Choose a new color from the customization panel!");
+            setMessage(`Amazing job, ${studentName}! You beat the Bonus Level and unlocked Custom Shape Colors! Choose a new color from the customization panel!`);
           } else {
             setMessage(`Terrific! You completed the objective.${isChallengeMet ? " And you solved the optional Challenge Objective! ⭐" : ""}`);
           }
@@ -761,6 +904,7 @@
         setStatus('playing');
         setMessage('');
         setChallengeCompleted(false);
+        setSheetStatus('idle');
       };
 
       const restartLevel = () => {
@@ -769,7 +913,9 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
+        setSeconds(0);
         setChallengeCompleted(false);
+        setSheetStatus('idle');
         resetCommandUI();
       };
 
@@ -823,7 +969,7 @@
       // --- RENDERING CANVAS ---
       useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !gameStarted) return;
         const ctx = canvas.getContext('2d');
         
         const dpr = window.devicePixelRatio || 1;
@@ -849,11 +995,10 @@
           };
         };
 
-        // 1. Draw Grid Paper Background (white base, grey grids)
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        ctx.strokeStyle = '#e5e7eb'; // light gray-200
+        ctx.strokeStyle = '#e5e7eb'; 
         ctx.lineWidth = 1;
         for (let x = 0; x <= GRID_W; x++) {
           ctx.beginPath(); 
@@ -868,8 +1013,7 @@
           ctx.stroke();
         }
 
-        // Grid Coordinates / Rule Lines
-        ctx.fillStyle = '#9ca3af'; // gray-400
+        ctx.fillStyle = '#9ca3af'; 
         ctx.font = '10px monospace';
         for (let x = 1; x < GRID_W; x++) {
           ctx.fillText(x, x * cellSize + 4, canvasHeight - 4);
@@ -878,7 +1022,6 @@
           ctx.fillText(y, 4, canvasHeight - y * cellSize - 4);
         }
 
-        // 2. Draw Target Silhouette (Green)
         const targetAbs = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'; 
         ctx.strokeStyle = '#16a34a'; 
@@ -889,19 +1032,17 @@
           ctx.fillRect(x, y, w, h);
           ctx.strokeRect(x, y, w, h);
         });
-        ctx.setLineDash([]); // Reset line dash
+        ctx.setLineDash([]); 
 
-        // 3. Draw Obstacles (Red/Dark Red crosshatched)
-        ctx.fillStyle = '#fee2e2'; // Light red background for obstacle cells
+        ctx.fillStyle = '#fee2e2'; 
         level.obstacles.forEach(obs => {
           const { x, y, w, h } = getCellRect(obs.x, obs.y);
           ctx.fillRect(x, y, w, h);
           
-          ctx.strokeStyle = '#ef4444'; // Red borders
+          ctx.strokeStyle = '#ef4444'; 
           ctx.lineWidth = 1.5;
           ctx.strokeRect(x, y, w, h);
 
-          // Inner stripes
           ctx.strokeStyle = '#f87171';
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -910,14 +1051,13 @@
           ctx.stroke();
         });
 
-        // 4. Draw Ghost (Preview / Proposed Step)
         const isMoving = pendingState.pivot.x !== pivot.x || 
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
         
         if (isMoving && status === 'playing') {
           const ghostAbs = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
-          ctx.fillStyle = 'rgba(156, 163, 175, 0.45)'; // Semi-transparent grey
+          ctx.fillStyle = 'rgba(156, 163, 175, 0.45)'; 
           ctx.strokeStyle = '#4b5563';
           ctx.setLineDash([4, 4]);
           ctx.lineWidth = 2;
@@ -928,7 +1068,6 @@
           });
           ctx.setLineDash([]);
 
-          // Draw Ghost Pivot
           const ghostPivotCanvas = getVertexPos(pendingState.pivot.x, pendingState.pivot.y);
           ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
           ctx.beginPath();
@@ -936,7 +1075,6 @@
           ctx.fill();
         }
 
-        // 5. Draw Actual Shape (Blue or custom unlocked color)
         const currentAbs = getAbsoluteCoords(pivot, blocks);
         ctx.fillStyle = selectedColor.fill; 
         ctx.strokeStyle = selectedColor.border; 
@@ -947,9 +1085,8 @@
           ctx.strokeRect(x, y, w, h);
         });
 
-        // 6. Draw Solid Pivot Handle (Red Circle at the vertex intersection)
         const pivotCanvas = getVertexPos(pivot.x, pivot.y);
-        ctx.fillStyle = '#ef4444'; // Red handle
+        ctx.fillStyle = '#ef4444'; 
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -957,16 +1094,24 @@
         ctx.fill();
         ctx.stroke();
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, cellSize, canvasWidth, canvasHeight]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, cellSize, canvasWidth, canvasHeight, gameStarted]);
 
-      // Command logs helper
       const moveTally = useMemo(() => {
         return {
           t: history.filter(h => h.type === 'translate').length,
           r: history.filter(h => h.type === 'rotate').length,
           f: history.filter(h => h.type === 'reflect').length,
+          total: history.length
         };
       }, [history]);
+
+      // Handle Form Submission on Start Screen
+      const handleStartGame = (e) => {
+        e.preventDefault();
+        if (studentName.trim().length > 0) {
+          setGameStarted(true);
+        }
+      };
 
       // --- UI COMPONENTS ---
       const NumberSelect = ({ value, onChange, max }) => (
@@ -1032,6 +1177,64 @@
         }
       };
 
+      // RENDER LOBBY START SCREEN
+      if (!gameStarted) {
+        return (
+          <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 flex flex-col gap-6">
+              
+              <div className="text-center">
+                <div className="mx-auto w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4 animate-bounce">
+                  <span className="text-white text-3xl font-black">📐</span>
+                </div>
+                <h1 className="text-2xl font-black text-slate-800 tracking-tight">Geometry Arena</h1>
+                <p className="text-sm text-slate-500 mt-1">Transform spatial figures & escape grid blockades</p>
+              </div>
+
+              <form onSubmit={handleStartGame} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Your Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={studentName}
+                    onChange={(e) => setStudentName(e.target.value)}
+                    placeholder="Enter your first and last name..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-semibold shadow-sm transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Class / Period (Optional)</label>
+                  <input
+                    type="text"
+                    value={classPeriod}
+                    onChange={(e) => setClassPeriod(e.target.value)}
+                    placeholder="e.g. Period 2 Geometry"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-semibold shadow-sm transition-all"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full mt-2 py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg rounded-xl shadow-lg shadow-blue-500/20 transition-transform active:scale-95"
+                >
+                  Enter Geometry Arena
+                </button>
+              </form>
+
+              <div className="border-t pt-4 text-center">
+                <p className="text-xs text-slate-400 font-medium">
+                  Your coordinates, translations, and star achievements are monitored and logged to the class scoreboard.
+                </p>
+              </div>
+
+            </div>
+          </div>
+        );
+      }
+
+      // RENDER GAMEPLAY
       return (
         <div className="min-h-screen bg-gray-100 p-4 font-sans flex flex-col items-center justify-center">
           
@@ -1041,7 +1244,9 @@
               <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
                 📐 Transformational Geometry Arena
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">Randomized puzzle mode loaded! Test and evaluate transformations dynamically.</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Active Student: <span className="font-bold text-blue-600">{studentName}</span> {classPeriod && `| Class: ${classPeriod}`}
+              </p>
             </div>
             <div className="flex flex-wrap gap-1">
               {LEVEL_VARIATIONS.map((_, i) => (
@@ -1068,7 +1273,7 @@
           {/* Main Box Area */}
           <div className="w-full max-w-[1200px] flex flex-col lg:flex-row gap-4 items-stretch">
             
-            {/* LEFT COMPONENT: Board Display Panel (Locked to calculated canvas bounds) */}
+            {/* LEFT COMPONENT: Board Display Panel with Parent Resize Observer Container */}
             <div 
               className="flex-1 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between"
               style={{ height: window.innerWidth >= 1024 ? `${canvasHeight + 110}px` : 'auto' }}
@@ -1077,125 +1282,134 @@
                 <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
                   {level.title}
                 </h2>
-                <div className="flex items-center gap-3 text-xs font-medium text-slate-500 shrink-0">
-                  <span className="flex items-center gap-1">
-                    <div className="w-3.5 h-3.5 rounded border" style={{ backgroundColor: selectedColor.fill, borderColor: selectedColor.border }}></div>
-                    Shape
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                    Pivot (Vertex)
-                  </span>
+                
+                {/* Timer and Statistics Tracker HUD */}
+                <div className="flex items-center gap-2 text-xs font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
+                  <span className="text-slate-500">⏳ {seconds}s</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="text-slate-500">👟 {moveTally.total} Moves</span>
                 </div>
               </div>
               
-              <div 
-                className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner mx-auto" 
-                style={{ width: canvasWidth, height: canvasHeight }}
-              >
-                <canvas 
-                  ref={canvasRef}
-                  onMouseDown={handleInteractionStart}
-                  onMouseMove={handleInteractionMove}
-                  onMouseUp={handleInteractionEnd}
-                  onMouseLeave={handleInteractionEnd}
-                  onTouchStart={handleInteractionStart}
-                  onTouchMove={handleInteractionMove}
-                  onTouchEnd={handleInteractionEnd}
-                  style={{ 
-                    width: `${canvasWidth}px`, 
-                    height: `${canvasHeight}px`, 
-                    display: 'block',
-                    cursor: isDragging ? 'grabbing' : 'grab'
-                  }}
-                />
-                
-                {/* Overlay messages */}
-                {status !== 'playing' && !showTrophyCelebration && (
-                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
-                    <h3 className={`text-3xl font-black mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
-                      {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
-                    </h3>
-                    <p className="text-base text-slate-700 font-medium mb-3 max-w-md">{message}</p>
-                    
-                    {status === 'won' && (
-                      <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg mb-4 max-w-sm">
-                        <p className="font-bold text-xs text-slate-800 mb-0.5">Challenge Check:</p>
-                        <p className="text-xs text-slate-500 mb-1.5 italic">"{level.challengeText}"</p>
-                        {challengeCompleted ? (
-                          <span className="text-emerald-600 text-sm font-extrabold flex items-center justify-center gap-1">
-                            ⭐ CHALLENGE COMPLETED! Excellent!
-                          </span>
-                        ) : (
-                          <span className="text-slate-500 text-xs font-semibold">
-                            Solved, but challenge target not met. Replay for the star!
-                          </span>
+              {/* Parent Observed wrapper to dynamically resize cellular coordinate paper grid */}
+              <div ref={containerRef} className="flex-1 w-full min-h-0 relative bg-slate-50 rounded-lg flex items-center justify-center">
+                <div 
+                  className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner select-none" 
+                  style={{ width: canvasWidth, height: canvasHeight }}
+                >
+                  <canvas 
+                    ref={canvasRef}
+                    onMouseDown={handleInteractionStart}
+                    onMouseMove={handleInteractionMove}
+                    onMouseUp={handleInteractionEnd}
+                    onMouseLeave={handleInteractionEnd}
+                    onTouchStart={handleInteractionStart}
+                    onTouchMove={handleInteractionMove}
+                    onTouchEnd={handleInteractionEnd}
+                    style={{ 
+                      width: `${canvasWidth}px`, 
+                      height: `${canvasHeight}px`, 
+                      display: 'block',
+                      cursor: isDragging ? 'grabbing' : 'grab'
+                    }}
+                  />
+                  
+                  {/* Overlay messages */}
+                  {status !== 'playing' && !showTrophyCelebration && (
+                    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                      <h3 className={`text-3xl font-black mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
+                        {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
+                      </h3>
+                      <p className="text-base text-slate-700 font-medium mb-3 max-w-md">{message}</p>
+                      
+                      {status === 'won' && (
+                        <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg mb-4 max-w-sm flex flex-col gap-2">
+                          <div>
+                            <p className="font-bold text-xs text-slate-800 mb-0.5">Challenge Check:</p>
+                            <p className="text-xs text-slate-500 mb-1.5 italic">"{level.challengeText}"</p>
+                            {challengeCompleted ? (
+                              <span className="text-emerald-600 text-sm font-extrabold flex items-center justify-center gap-1">
+                                ⭐ CHALLENGE COMPLETED! Excellent!
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 text-xs font-semibold">
+                                Solved, but challenge target not met. Replay for the star!
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* Live sheets synchronization logger state */}
+                          <div className="border-t pt-2 text-xs">
+                            {sheetStatus === 'sending' && <span className="text-blue-500 animate-pulse font-bold">Logging score to classroom spreadsheet...</span>}
+                            {sheetStatus === 'success' && <span className="text-emerald-600 font-bold">✅ Progress Logged to Class Scoreboard!</span>}
+                            {sheetStatus === 'error' && <span className="text-red-500 font-bold">❌ Score Submission Failed. Offline mode active.</span>}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {status === 'crashed' && (
+                          <button onClick={undo} className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-sm rounded-lg transition-colors">
+                            Undo Last Move
+                          </button>
                         )}
+                        {status === 'won' && levelIdx < 5 && (
+                          <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-sm rounded-lg transition-transform hover:scale-105">
+                            Next Level
+                          </button>
+                        )}
+                        <button onClick={restartLevel} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-sm rounded-lg transition-colors">
+                          Restart Level
+                        </button>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {status === 'crashed' && (
-                        <button onClick={undo} className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-sm rounded-lg transition-colors">
-                          Undo Last Move
+                  {/* MARIO KART CELEBRATION */}
+                  {showTrophyCelebration && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
+                      <div className="relative mb-4 animate-bounce">
+                        <svg className="w-36 h-36 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
+                          <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
+                          <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
+                          <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                          <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                          <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                          <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
+                          <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                          <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
+                        </svg>
+                      </div>
+                      <h3 className="text-3xl font-black text-amber-400 tracking-wide mb-1 animate-pulse">
+                        CONGRATULATIONS!
+                      </h3>
+                      <p className="text-lg font-bold mb-2">You conquered all 5 core levels!</p>
+                      <p className="text-xs text-slate-300 max-w-sm mb-5">
+                        Ready to tackle the ultimate challenge to unlock custom figure coloring?
+                      </p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setLevelIdx(5); 
+                            setShowTrophyCelebration(false);
+                          }} 
+                          className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
+                        >
+                          🚀 Enter the Bonus Level
                         </button>
-                      )}
-                      {status === 'won' && levelIdx < 5 && (
-                        <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-sm rounded-lg transition-transform hover:scale-105">
-                          Next Level
+                        <button 
+                          onClick={() => {
+                            setShowTrophyCelebration(false);
+                            restartLevel();
+                          }} 
+                          className="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold text-sm rounded-xl transition-colors"
+                        >
+                          View Grid
                         </button>
-                      )}
-                      <button onClick={restartLevel} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-sm rounded-lg transition-colors">
-                        Restart Level
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* MARIO KART CELEBRATION */}
-                {showTrophyCelebration && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
-                    <div className="relative mb-4 animate-bounce">
-                      <svg className="w-36 h-36 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
-                        <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
-                        <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
-                        <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                        <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                        <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                        <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
-                        <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                        <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
-                      </svg>
-                    </div>
-                    <h3 className="text-3xl font-black text-amber-400 tracking-wide mb-1 animate-pulse">
-                      CONGRATULATIONS!
-                    </h3>
-                    <p className="text-lg font-bold mb-2">You conquered all 5 core levels!</p>
-                    <p className="text-xs text-slate-300 max-w-sm mb-5">
-                      Ready to tackle the ultimate challenge to unlock custom figure coloring?
-                    </p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setLevelIdx(5); 
-                          setShowTrophyCelebration(false);
-                        }} 
-                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                      >
-                        🚀 Enter the Bonus Level
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowTrophyCelebration(false);
-                          restartLevel();
-                        }} 
-                        className="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold text-sm rounded-xl transition-colors"
-                      >
-                        View Grid
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               
               <div className="text-xs text-slate-600 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 flex flex-col gap-0.5 mt-2">
@@ -1330,15 +1544,3 @@
   </script>
 </body>
 </html>
-```eor
-I will now edit the `index.html` file in the Canvas to introduce a highly advanced, fully robust parent-observed dynamic scaling layout. 
-
-### Why it was clipping at 100% Zoom:
-Even though we added some window height calculations in the last iteration, the vertical height calculation `window.innerHeight - 180` did not account for the real heights of page elements such as the browser tab bars, active bookmarks, the top layout title bar, margin padding offsets, and bottom action goals. This caused the actual body height of the document to exceed $100\text{vh}$, hiding the bottom row ($y=0$ to $y=2$) and the $x$-axis coordinate grid.
-
-### What is changed in this Canvas update:
-1. **Precise Layout Container Observation:** We've introduced a React `useRef` directly targeting the grid canvas wrapper container (`containerRef`) paired with a responsive **`ResizeObserver`** callback.
-2. **True Proportional Auto-Fit:** The game engine now checks the *actual pixel size of the empty space* inside the board wrapper and divides it proportionally by $20 \times 15$ blocks, ensuring the grid always adapts and fits perfectly on any monitor resolution (even 11.6" Chromebooks) without any manual browser zooming!
-3. **Internal Scrollability for Panels:** The right side control panel is bound to the height of the container, utilizing dynamic overflow properties so scroll bars never leak outside the page body.
-
-Let's apply these precise edits now.
