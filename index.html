@@ -14,16 +14,15 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Allow clean page scrolling if the screen size is smaller than the grid bounds */
+    /* Lock the main page viewport to 100% height to prevent any outside scrolling */
     html, body {
       margin: 0;
       padding: 0;
-      min-height: 100%;
+      height: 100%;
       width: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
     }
-    /* Sleek custom scrollbars for interactive elements */
+    /* Clean custom scrollbars for side inputs and details */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -42,7 +41,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-  <div id="root" class="w-full"></div>
+  <div id="root" class="h-full w-full"></div>
 
   <!-- React & Babel Transpiled Script -->
   <script type="text/babel">
@@ -55,9 +54,9 @@
     // --- GAME GRID CONSTANTS ---
     const GRID_W = 20;
     const GRID_H = 15;
-    const CELL_SIZE = 40; // Reverted back to classic crisp 40px cell sizing
-    const CANVAS_WIDTH = GRID_W * CELL_SIZE; // 800px
-    const CANVAS_HEIGHT = GRID_H * CELL_SIZE; // 600px
+    const CELL_SIZE = 40; // Internal standard logical coordinate unit
+    const CANVAS_WIDTH = GRID_W * CELL_SIZE; // Logical width = 800
+    const CANVAS_HEIGHT = GRID_H * CELL_SIZE; // Logical height = 600
 
     const INITIAL_BLOCKS = [
       { x: 0.5, y: 0.5 }, // Corner block
@@ -885,19 +884,22 @@
         resetCommandUI();
       };
 
-      // --- MOUSE & TOUCH INTERACTION ON CANVAS ---
+      // --- MOUSE & TOUCH INTERACTION ON CANVAS (Using percentage proportional scaling) ---
       const getCanvasMousePos = (e) => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
         const rect = canvas.getBoundingClientRect();
+        
+        // Support touch and mouse coordinates
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
-        const cx = clientX - rect.left;
-        const cy = clientY - rect.top;
+        const relativeX = (clientX - rect.left) / rect.width;
+        const relativeY = (clientY - rect.top) / rect.height;
         
-        const gx = cx / CELL_SIZE;
-        const gy = (CANVAS_HEIGHT - cy) / CELL_SIZE;
+        // Map proportional inputs to logical coordinate system coordinates
+        const gx = relativeX * GRID_W;
+        const gy = (1 - relativeY) * GRID_H; // Y-axis inverted
         return { x: gx, y: gy };
       };
 
@@ -1191,15 +1193,15 @@
 
       // RENDER GAMEPLAY
       return (
-        <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center justify-start overflow-y-auto">
+        <div className="h-screen w-full bg-gray-100 p-4 flex flex-col items-center justify-between overflow-hidden">
           
           {/* Header Panel */}
-          <div className="w-full max-w-[1200px] mb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 shrink-0">
+          <div className="w-full max-w-[1200px] flex flex-col md:flex-row justify-between items-start md:items-end gap-2 shrink-0 pb-1 border-b">
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
                 📐 Transformational Geometry Arena
               </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Active Student: <span className="font-bold text-blue-600">{studentName}</span>
               </p>
             </div>
@@ -1211,7 +1213,7 @@
                     setLevelIdx(i);
                     setShowTrophyCelebration(false);
                   }}
-                  className={`px-3 py-1.5 rounded-md text-sm font-bold transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
                     levelIdx === i 
                       ? 'bg-blue-600 text-white shadow-md' 
                       : i === 5 
@@ -1225,152 +1227,163 @@
             </div>
           </div>
 
-          {/* Main Box Area */}
-          <div className="w-full max-w-[1200px] flex flex-col lg:flex-row gap-6 items-start justify-center">
+          {/* Main Box Area (Flex height-bound to fit the screen without scrolling) */}
+          <div className="w-full max-w-[1200px] flex-1 min-h-0 flex flex-col lg:flex-row gap-4 items-stretch justify-center pb-2">
             
-            {/* LEFT COMPONENT: Board Display Panel (Restored to classic non-compressed size) */}
-            <div className="w-full lg:w-[834px] bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between shrink-0">
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-base md:text-lg font-bold text-slate-800 truncate pr-2">
+            {/* LEFT COMPONENT: Board Display Panel (Proportionally Scaled with Aspect containment) */}
+            <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden">
+              <div className="flex justify-between items-center mb-1.5 shrink-0">
+                <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
                   {level.title}
                 </h2>
                 
                 {/* Timer and Statistics Tracker HUD */}
-                <div className="flex items-center gap-2 text-xs font-mono font-bold bg-slate-50 border px-2.5 py-1.5 rounded">
+                <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
                   <span className="text-slate-500">⏳ {seconds}s</span>
                   <span className="text-slate-300">|</span>
                   <span className="text-slate-500">👟 {moveTally.total} Moves</span>
                 </div>
               </div>
               
-              <div 
-                className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner mx-auto shrink-0" 
-                style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-              >
-                <canvas 
-                  ref={canvasRef}
-                  onMouseDown={handleInteractionStart}
-                  onMouseMove={handleInteractionMove}
-                  onMouseUp={handleInteractionEnd}
-                  onMouseLeave={handleInteractionEnd}
-                  onTouchStart={handleInteractionStart}
-                  onTouchMove={handleInteractionMove}
-                  onTouchEnd={handleInteractionEnd}
-                  style={{ 
-                    width: `${CANVAS_WIDTH}px`, 
-                    height: `${CANVAS_HEIGHT}px`, 
-                    display: 'block',
-                    cursor: isDragging ? 'grabbing' : 'grab'
+              {/* This container dynamically holds the aspect-constrained canvas */}
+              <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden bg-slate-50 rounded-lg p-2 relative">
+                <div 
+                  className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    maxWidth: `${CANVAS_WIDTH}px`,
+                    maxHeight: `${CANVAS_HEIGHT}px`,
+                    aspectRatio: '20/15'
                   }}
-                />
-                
-                {/* Overlay messages */}
-                {status !== 'playing' && !showTrophyCelebration && (
-                  <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
-                    <h3 className={`text-3xl font-black mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
-                      {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
-                    </h3>
-                    <p className="text-base text-slate-700 font-medium mb-3 max-w-md">{message}</p>
-                    
-                    {status === 'won' && (
-                      <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg mb-4 w-full max-w-sm flex flex-col gap-2">
-                        <div>
-                          <p className="font-bold text-xs text-slate-800 mb-0.5">Challenge Check:</p>
-                          <p className="text-xs text-slate-500 mb-1.5 italic">"{level.challengeText}"</p>
-                          {challengeCompleted ? (
-                            <span className="text-emerald-600 text-sm font-extrabold flex items-center justify-center gap-1">
-                              ⭐ CHALLENGE COMPLETED! Excellent!
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 text-xs font-semibold">
-                              Solved, but challenge target not met. Replay for the star!
-                            </span>
-                          )}
+                >
+                  <canvas 
+                    ref={canvasRef}
+                    onMouseDown={handleInteractionStart}
+                    onMouseMove={handleInteractionMove}
+                    onMouseUp={handleInteractionEnd}
+                    onMouseLeave={handleInteractionEnd}
+                    onTouchStart={handleInteractionStart}
+                    onTouchMove={handleInteractionMove}
+                    onTouchEnd={handleInteractionEnd}
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                      objectFit: 'contain'
+                    }}
+                  />
+                  
+                  {/* Overlay messages */}
+                  {status !== 'playing' && !showTrophyCelebration && (
+                    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                      <h3 className={`text-2xl md:text-3xl font-black mb-1 md:mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
+                        {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
+                      </h3>
+                      <p className="text-xs md:text-sm text-slate-700 font-medium mb-2 max-w-md">{message}</p>
+                      
+                      {status === 'won' && (
+                        <div className="bg-slate-50 border border-slate-200 p-2 md:p-3 rounded-lg mb-3 w-full max-w-sm flex flex-col gap-1 md:gap-2">
+                          <div>
+                            <p className="font-bold text-[10px] md:text-xs text-slate-800 mb-0.5">Challenge Check:</p>
+                            <p className="text-[10px] md:text-xs text-slate-500 mb-1 italic">"{level.challengeText}"</p>
+                            {challengeCompleted ? (
+                              <span className="text-emerald-600 text-xs md:text-sm font-extrabold flex items-center justify-center gap-1">
+                                ⭐ CHALLENGE COMPLETED! Excellent!
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 text-[10px] md:text-xs font-semibold">
+                                Solved, but challenge target not met. Replay for the star!
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* Live sheets synchronization logger state */}
+                          <div className="border-t pt-1.5 text-[10px] md:text-xs">
+                            {sheetStatus === 'sending' && <span className="text-blue-500 animate-pulse font-bold">Logging score to classroom spreadsheet...</span>}
+                            {sheetStatus === 'success' && <span className="text-emerald-600 font-bold">✅ Progress Logged to Class Scoreboard!</span>}
+                            {sheetStatus === 'error' && <span className="text-red-500 font-bold">❌ Score Submission Failed. Offline mode active.</span>}
+                          </div>
                         </div>
-                        
-                        {/* Live sheets synchronization logger state */}
-                        <div className="border-t pt-2 text-xs">
-                          {sheetStatus === 'sending' && <span className="text-blue-500 animate-pulse font-bold">Logging score to classroom spreadsheet...</span>}
-                          {sheetStatus === 'success' && <span className="text-emerald-600 font-bold">✅ Progress Logged to Class Scoreboard!</span>}
-                          {sheetStatus === 'error' && <span className="text-red-500 font-bold">❌ Score Submission Failed. Offline mode active.</span>}
-                        </div>
+                      )}
+
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {status === 'crashed' && (
+                          <button onClick={undo} className="px-3.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-xs md:text-sm rounded-lg transition-colors">
+                            Undo Last Move
+                          </button>
+                        )}
+                        {status === 'won' && levelIdx < 5 && (
+                          <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105">
+                            Next Level
+                          </button>
+                        )}
+                        <button onClick={restartLevel} className="px-3.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-xs md:text-sm rounded-lg transition-colors">
+                          Restart Level
+                        </button>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {status === 'crashed' && (
-                        <button onClick={undo} className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-sm rounded-lg transition-colors">
-                          Undo Last Move
+                  {/* MARIO KART CELEBRATION */}
+                  {showTrophyCelebration && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
+                      <div className="relative mb-3 animate-bounce">
+                        <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
+                          <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
+                          <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
+                          <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                          <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                          <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                          <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
+                          <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                          <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-black text-amber-400 tracking-wide mb-1 animate-pulse">
+                        CONGRATULATIONS!
+                      </h3>
+                      <p className="text-sm md:text-lg font-bold mb-1">You conquered all 5 core levels!</p>
+                      <p className="text-[10px] md:text-xs text-slate-300 max-w-sm mb-4">
+                        Ready to tackle the ultimate challenge to unlock custom figure coloring?
+                      </p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            setLevelIdx(5); 
+                            setShowTrophyCelebration(false);
+                          }} 
+                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
+                        >
+                          🚀 Enter the Bonus Level
                         </button>
-                      )}
-                      {status === 'won' && levelIdx < 5 && (
-                        <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-sm rounded-lg transition-transform hover:scale-105">
-                          Next Level
+                        <button 
+                          onClick={() => {
+                            setShowTrophyCelebration(false);
+                            restartLevel();
+                          }} 
+                          className="px-3 py-2 bg-white/20 hover:bg-white/30 text-white font-bold text-xs md:text-sm rounded-xl transition-colors"
+                        >
+                          View Grid
                         </button>
-                      )}
-                      <button onClick={restartLevel} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-sm rounded-lg transition-colors">
-                        Restart Level
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* MARIO KART CELEBRATION */}
-                {showTrophyCelebration && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 via-purple-900/95 to-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
-                    <div className="relative mb-4 animate-bounce">
-                      <svg className="w-36 h-36 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
-                        <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
-                        <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
-                        <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                        <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                        <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                        <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
-                        <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                        <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
-                      </svg>
-                    </div>
-                    <h3 className="text-3xl font-black text-amber-400 tracking-wide mb-1 animate-pulse">
-                      CONGRATULATIONS!
-                    </h3>
-                    <p className="text-lg font-bold mb-2">You conquered all 5 core levels!</p>
-                    <p className="text-xs text-slate-300 max-w-sm mb-5">
-                      Ready to tackle the ultimate challenge to unlock custom figure coloring?
-                    </p>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setLevelIdx(5); 
-                          setShowTrophyCelebration(false);
-                        }} 
-                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                      >
-                        🚀 Enter the Bonus Level
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowTrophyCelebration(false);
-                          restartLevel();
-                        }} 
-                        className="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold text-sm rounded-xl transition-colors"
-                      >
-                        View Grid
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               
-              <div className="text-xs text-slate-600 bg-blue-50/60 p-3 rounded-lg border border-blue-100 flex flex-col gap-0.5 mt-3 select-none">
+              <div className="text-[11px] md:text-xs text-slate-600 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 flex flex-col gap-0.5 mt-2 shrink-0 select-none">
                 <div><strong>Goal:</strong> {level.instructions}</div>
                 <div className="text-purple-900"><strong>Challenge:</strong> {level.challengeText}</div>
               </div>
             </div>
 
-            {/* RIGHT COMPONENT: Action Control Panel */}
-            <div className="w-full lg:w-[340px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between h-[680px] overflow-hidden shrink-0">
+            {/* RIGHT COMPONENT: Action Control Panel (Height matches perfectly and scrolls internally if needed) */}
+            <div className="w-full lg:w-[340px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between h-full min-h-0 overflow-hidden shrink-0">
               
-              <div className="flex bg-slate-100 border-b">
+              {/* Main Action Tabs */}
+              <div className="flex bg-slate-100 border-b shrink-0">
                 {['translate', 'rotate', 'reflect'].map(tab => (
                   <button
                     key={tab}
@@ -1383,13 +1396,16 @@
                 ))}
               </div>
 
+              {/* Interactive Console HUD */}
               <div className="p-4 flex-1 flex flex-col justify-between gap-3 overflow-y-auto">
                 
+                {/* Command Configurator */}
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Command Builder</h3>
                   {renderCommandSentence()}
                 </div>
 
+                {/* Live Stats Tally */}
                 <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 text-xs">
                   <div className="font-bold text-slate-700 mb-1.5 flex justify-between items-center">
                     <span>Active Movement counters</span>
@@ -1411,6 +1427,7 @@
                   </div>
                 </div>
 
+                {/* Customizer Tray */}
                 <div className="border-t border-dashed pt-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
                     <span>Custom block Color</span>
@@ -1439,12 +1456,14 @@
                   )}
                 </div>
 
+                {/* Explainer / Hint Banner */}
                 <div className="bg-yellow-50/70 border-l-2 border-yellow-400 p-2.5 text-[11px] text-yellow-900 rounded-r-lg">
                   <p className="font-bold mb-0.5">Ghost Preview Mode Active</p>
                   <p>Configure parameters above or <span className="font-bold">drag the red handle on the grid</span> to test your translations before clicking Commit.</p>
                 </div>
 
-                <div className="flex flex-col gap-2 pt-2 border-t">
+                {/* Primary Action Commit Dock */}
+                <div className="flex flex-col gap-2 pt-2 border-t shrink-0">
                   <button 
                     onClick={commitMovement}
                     disabled={status !== 'playing'}
