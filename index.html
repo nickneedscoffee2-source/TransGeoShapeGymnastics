@@ -744,6 +744,7 @@
       const [studentName, setStudentName] = useState('');
       const [difficulty, setDifficulty] = useState('medium'); 
       const [gameStarted, setGameStarted] = useState(false);
+      const [showTutorial, setShowTutorial] = useState(false);
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
       // Track Continues
@@ -758,7 +759,7 @@
       
       // Dynamic max time allocation
       const maxTimeLimit = useMemo(() => {
-        if (difficulty === 'easy') return 90; 
+        if (difficulty === 'training') return null; // Infinite time
         if (difficulty === 'expert') return 30; 
         if (difficulty === 'narwhal') return 15; 
         return 60; 
@@ -841,7 +842,7 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSecondsLeft(maxTimeLimit);
+        setSecondsLeft(maxTimeLimit !== null ? maxTimeLimit : 0); // 0 just as a placeholder if infinite
         setChallengeCompleted(false);
         setSheetStatus('idle');
         setSelectedMirrorLineIdx(0);
@@ -884,7 +885,7 @@
 
       // Trigger Narwhal Random Spawn
       useEffect(() => {
-        if (status === 'playing' && gameStarted && !narwhalSpawnedThisLevel.current && !mathQuiz) {
+        if (status === 'playing' && gameStarted && !showTutorial && !narwhalSpawnedThisLevel.current && !mathQuiz) {
             const delay = Math.random() * 15000 + 5000; 
             const timer = setTimeout(() => {
                 narwhalSpawnedThisLevel.current = true;
@@ -892,6 +893,7 @@
                 
                 // Configure Dynamic Speed Based on Difficulty
                 let baseSpd = 0.05;
+                if (difficulty === 'training') baseSpd = 0.05;
                 if (difficulty === 'medium') baseSpd = 0.12;
                 if (difficulty === 'expert') baseSpd = 0.22;
                 if (difficulty === 'narwhal') baseSpd = 0.35;
@@ -910,7 +912,7 @@
             }, delay);
             return () => clearTimeout(timer);
         }
-      }, [status, gameStarted, mathQuiz, difficulty]);
+      }, [status, gameStarted, mathQuiz, difficulty, showTutorial]);
 
       // Narwhal Animation Loop Trigger
       useEffect(() => {
@@ -970,19 +972,23 @@
               question: qStr,
               answer: answer,
               options: optionsArr,
-              timeLeft: 7 // Adjusted to 7 seconds!
+              timeLeft: 7 
           });
       }
 
       function handleQuizAnswer(opt) {
           if (opt === mathQuiz.answer) {
-              let bonus = 30;
-              if (difficulty === 'easy') bonus = 45;
-              else if (difficulty === 'expert') bonus = 20;
-              else if (difficulty === 'narwhal') bonus = 15;
+              if (difficulty === 'training') {
+                  setMessage(`Correct! You successfully caught the Narwhal!`);
+              } else {
+                  let bonus = 30;
+                  if (difficulty === 'medium') bonus = 30;
+                  else if (difficulty === 'expert') bonus = 20;
+                  else if (difficulty === 'narwhal') bonus = 15;
 
-              setSecondsLeft(prev => prev + bonus);
-              setMessage(`Correct! +${bonus} Seconds of Bonus Time granted by the Narwhal!`);
+                  setSecondsLeft(prev => prev + bonus);
+                  setMessage(`Correct! +${bonus} Seconds of Bonus Time granted by the Narwhal!`);
+              }
           } else {
               setMessage("Incorrect! The Narwhal swam away.");
           }
@@ -1000,6 +1006,9 @@
       function handleStartGame(e) {
         e.preventDefault();
         if (studentName.trim().length > 0) {
+          if (difficulty === 'training') {
+            setShowTutorial(true);
+          }
           setGameStarted(true);
         }
       }
@@ -1053,7 +1062,7 @@
       // Universal Keyboard Listeners for All Tabs
       useEffect(() => {
         function handleKeyDown(e) {
-          if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver) return;
+          if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1122,7 +1131,7 @@
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [status, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz, isGameOver]);
+      }, [status, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz, isGameOver, showTutorial]);
 
       function handleCrash(reasonMessage) {
         setPivot(level.startPivot);
@@ -1132,20 +1141,26 @@
         resetCommandUI();
         setStatus('playing');
         
-        setSecondsLeft(prev => {
-            const newTime = prev - 10;
-            if (newTime <= 0) {
-                return 0; // The effect below will catch it
-            }
-            setMessage(`⚠️ ${reasonMessage} Penalty: -10 Seconds!`);
-            setTimeout(() => setMessage(''), 4000);
-            return newTime;
-        });
+        if (maxTimeLimit !== null) {
+          setSecondsLeft(prev => {
+              const newTime = prev - 10;
+              if (newTime <= 0) {
+                  return 0; // The effect below will catch it
+              }
+              setMessage(`⚠️ ${reasonMessage} Penalty: -10 Seconds!`);
+              setTimeout(() => setMessage(''), 4000);
+              return newTime;
+          });
+        } else {
+          setMessage(`⚠️ ${reasonMessage}`);
+          setTimeout(() => setMessage(''), 4000);
+        }
       }
 
       // Watch for Timeout specifically
       useEffect(() => {
-        if (status === 'playing' && gameStarted && secondsLeft <= 0 && !showContinueOffer && !mathQuiz) {
+        if (maxTimeLimit === null) return; // Ignore in Training
+        if (status === 'playing' && gameStarted && secondsLeft <= 0 && !showContinueOffer && !mathQuiz && !showTutorial) {
             if (!hasContinued) {
                 setShowContinueOffer(true);
             } else {
@@ -1154,12 +1169,13 @@
                 setTimeout(() => setMessage(''), 4000);
             }
         }
-      }, [secondsLeft, status, gameStarted, showContinueOffer, mathQuiz, hasContinued, initLevelData]);
+      }, [secondsLeft, status, gameStarted, showContinueOffer, mathQuiz, hasContinued, initLevelData, maxTimeLimit, showTutorial]);
 
       // Live Countdown Timer Hook
       useEffect(() => {
+        if (maxTimeLimit === null) return; // Ignore in Training
         let timerId = null;
-        if (status === 'playing' && gameStarted && !showContinueOffer && !mathQuiz && secondsLeft > 0) {
+        if (status === 'playing' && gameStarted && !showContinueOffer && !mathQuiz && !showTutorial && secondsLeft > 0) {
           timerId = setInterval(() => {
             setSecondsLeft(prev => prev - 1);
           }, 1000);
@@ -1167,7 +1183,7 @@
         return () => {
           if (timerId) clearInterval(timerId);
         };
-      }, [status, gameStarted, showContinueOffer, mathQuiz, secondsLeft]);
+      }, [status, gameStarted, showContinueOffer, mathQuiz, secondsLeft, maxTimeLimit, showTutorial]);
 
       function handleContinue() {
         setHasContinued(true);
@@ -1189,7 +1205,8 @@
 
       function calculateScore(moveCount, finalSecondsLeft, isChallengeMet) {
         const baseScore = 1000;
-        const speedBonus = finalSecondsLeft * 10;
+        // In training, time is not recorded negatively, default bonus to 0
+        const speedBonus = finalSecondsLeft !== null ? finalSecondsLeft * 10 : 0;
         const efficiencyBonus = Math.max(0, (level.parMoves - moveCount) * 200);
         const challengeBonus = isChallengeMet ? 500 : 0;
         return baseScore + speedBonus + efficiencyBonus + challengeBonus;
@@ -1218,7 +1235,7 @@
           reflections: reflections,
           totalMoves: totalMoves,
           parMoves: level.parMoves,
-          time: maxTimeLimit - secondsLeft,
+          time: maxTimeLimit ? maxTimeLimit - secondsLeft : 0,
           solved: "Yes",
           challengeCompleted: isChallengeMet ? "Yes" : "No",
           score: score
@@ -1239,7 +1256,7 @@
       }
 
       function commitMovement() {
-        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
+        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz || showTutorial) return;
 
         if (activeTab === 'translate') {
           if (checkPathCollision(pivot, pendingState.pivot, blocks, currentObstacles)) {
@@ -1279,7 +1296,9 @@
           const overlapsBonus = absPendingCoords.some(c => Math.floor(c.x) === timeBonusNode.x && Math.floor(c.y) === timeBonusNode.y);
           if (overlapsBonus) {
             setTimeBonusNode(prev => ({ ...prev, active: false }));
-            setSecondsLeft(s => s + 10);
+            if (maxTimeLimit !== null) {
+              setSecondsLeft(s => s + 10);
+            }
             setBonusAlert({ title: "⏰ +10 SECONDS!", desc: "You grabbed the time bonus!" });
             setTimeout(() => setBonusAlert(null), 3000);
           }
@@ -1331,7 +1350,7 @@
 
       // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
       function handleCanvasClick(e) {
-        if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver) return;
+        if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
         
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -1686,7 +1705,7 @@
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Select Difficulty</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { key: 'easy', label: 'Easy', desc: '1:30 Min Timer', color: 'border-green-500 text-green-700 bg-green-50', locked: false },
+                      { key: 'training', label: 'Training', desc: 'No Timer & Tutorial', color: 'border-green-500 text-green-700 bg-green-50', locked: false },
                       { key: 'medium', label: 'Medium', desc: '1 Min Timer', color: 'border-blue-500 text-blue-700 bg-blue-50', locked: false },
                       { key: 'expert', label: 'Expert', desc: '30 Sec Timer', color: 'border-red-500 text-red-700 bg-red-50', locked: false },
                       { 
@@ -1735,6 +1754,30 @@
                 </p>
               </div>
 
+            </div>
+          </div>
+        );
+      }
+
+      // RENDER TUTORIAL OVERLAY
+      if (showTutorial) {
+        return (
+          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900/95 p-4 z-50">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
+                <h1 className="text-3xl font-black text-blue-600">Welcome to Training Mode! 🎓</h1>
+                <div className="text-left text-slate-700 space-y-4 font-medium text-lg leading-relaxed">
+                    <p><strong>🎯 Objective:</strong> Use transformations to move your solid shape into the dotted green target area exactly.</p>
+                    <p><strong>⌨️ Controls:</strong> Use your <strong>Arrow Keys</strong> or the command dropdowns to plan your move. A grey "ghost" shape will preview your destination.</p>
+                    <p><strong>🧱 Obstacles:</strong> Avoid red walls! Your path must be clear to translate safely.</p>
+                    <p><strong>⏱️ Bonuses:</strong> Grab the scattered Clock items to earn +10 seconds (very useful in harder modes!).</p>
+                    <p><strong>🐋 The Narwhal:</strong> Keep an eye out for a speedy Narwhal crossing your screen! Click it quickly to earn massive bonus time in standard modes!</p>
+                </div>
+                <button 
+                  onClick={() => setShowTutorial(false)} 
+                  className="mt-4 w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition-transform active:scale-95"
+                >
+                  Start Training!
+                </button>
             </div>
           </div>
         );
@@ -1824,20 +1867,30 @@
                     <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
                       <span className="text-slate-500">👟 {moveTally.total} Moves</span>
                       <span className="text-slate-300">|</span>
-                      <span className={`font-mono font-bold ${secondsLeft <= 10 ? "text-red-600 animate-pulse" : "text-slate-600"}`}>
-                        ⏱ {Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, '0')}
+                      <span className={`font-mono font-bold ${maxTimeLimit !== null && secondsLeft <= 10 ? "text-red-600 animate-pulse" : "text-slate-600"}`}>
+                        ⏱ {maxTimeLimit === null ? '∞' : `${Math.floor(secondsLeft / 60)}:${(secondsLeft % 60).toString().padStart(2, '0')}`}
                       </span>
                     </div>
                  </div>
 
                  {/* Shrinking Animated Time Bar */}
-                 <div className="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden shadow-inner">
-                   <div className={`h-2.5 rounded-full transition-all duration-1000 ease-linear ${secondsLeft < 15 ? 'bg-red-500 animate-pulse' : secondsLeft < 30 ? 'bg-yellow-400' : 'bg-emerald-500'}`} style={{ width: `${Math.max(0, (secondsLeft / maxTimeLimit) * 100)}%` }}></div>
-                 </div>
+                 {maxTimeLimit !== null && (
+                   <div className="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden shadow-inner">
+                     <div className={`h-2.5 rounded-full transition-all duration-1000 ease-linear ${secondsLeft < 15 ? 'bg-red-500 animate-pulse' : secondsLeft < 30 ? 'bg-yellow-400' : 'bg-emerald-500'}`} style={{ width: `${Math.max(0, (secondsLeft / maxTimeLimit) * 100)}%` }}></div>
+                   </div>
+                 )}
               </div>
               
               {/* This container dynamically holds the aspect-constrained canvas */}
               <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden bg-slate-50 rounded-lg p-2 relative">
+                
+                {/* Catch the Narwhal Alert for Training Mode */}
+                {isNarwhalActive && difficulty === 'training' && !mathQuiz && (
+                  <div className="absolute top-8 left-1/2 -translate-x-1/2 font-black text-lg md:text-2xl text-fuchsia-600 animate-bounce bg-white/95 px-6 py-2 rounded-2xl shadow-xl border-2 border-fuchsia-300 pointer-events-none z-20">
+                      🐋 Catch The Narwhal!
+                  </div>
+                )}
+
                 <div 
                   className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner"
                   style={{
@@ -2062,13 +2115,10 @@
                           </button>
                         )}
                         <button 
-                          onClick={() => {
-                            setShowTrophyCelebration(false);
-                            restartLevel();
-                          }} 
-                          className="px-3 py-2 bg-white/20 hover:bg-white/30 text-white font-bold text-xs md:text-sm rounded-xl transition-colors"
+                          onClick={handleResetToLobby} 
+                          className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
                         >
-                          View Grid
+                          🔙 Back to Menu
                         </button>
                       </div>
                     </div>
