@@ -21,6 +21,7 @@
       height: 100%;
       width: 100%;
       overflow: hidden;
+      background-color: #f8fafc;
     }
     /* Sleek custom scrollbars for interactive elements */
     ::-webkit-scrollbar {
@@ -49,7 +50,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="text-slate-800">
 
   <div id="root" class="h-full w-full"></div>
 
@@ -58,22 +59,32 @@
     const { useState, useEffect, useRef, useMemo } = React;
 
     // --- GOOGLE SHEETS INTEGRATION CONFIG ---
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    // User configured Apps Script Endpoint
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVaM-rRn-WVjNy3KSXXpIjC2UoR0b2x7c9ONKJd1QM5QoVV8IfAaivCZUijGRs8mi6/exec"; 
 
     // --- GAME GRID CONSTANTS ---
     const GRID_W = 20;
     const GRID_H = 15;
-    const CELL_SIZE = 40; // Internal standard logical coordinate unit
-    const CANVAS_WIDTH = GRID_W * CELL_SIZE; // Logical width = 800
-    const CANVAS_HEIGHT = GRID_H * CELL_SIZE; // Logical height = 600
+    const CELL_SIZE = 40; 
+    const CANVAS_WIDTH = GRID_W * CELL_SIZE; 
+    const CANVAS_HEIGHT = GRID_H * CELL_SIZE;
 
+    // Start block is an L-Shape pointing top-right
     const INITIAL_BLOCKS = [
-      { x: 0.5, y: 0.5 }, // Corner block
+      { x: 0.5, y: 0.5 }, 
       { x: 1.5, y: 0.5 },
       { x: 2.5, y: 0.5 },
       { x: 0.5, y: 1.5 },
       { x: 0.5, y: 2.5 },
+    ];
+
+    // Used for Level 6 solvable targets
+    const FLIPPED_ROTATED_BLOCKS = [
+      { x: -0.5, y: -0.5 }, 
+      { x: -0.5, y: -1.5 }, 
+      { x: -0.5, y: -2.5 }, 
+      { x: -1.5, y: -0.5 }, 
+      { x: -2.5, y: -0.5 }
     ];
 
     // --- 30 UNIQUE PUZZLE VARIATIONS WITH DIVERSE STARTS & MIRROR LINES ---
@@ -162,7 +173,7 @@
         {
           id: 2,
           title: "Level 2 (Var A): Right Gap Rotation",
-          instructions: "You need to rotate the shape to pass safely through the narrow vertical gap.",
+          instructions: "Rotate the shape to pass safely through the narrow vertical gap.",
           challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var A",
@@ -192,7 +203,7 @@
           },
           startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 10, y: 3 },
+          targetPivot: { x: 10, y: 3 }, 
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:6, y:6},{x:7, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
@@ -361,7 +372,7 @@
           id: 4,
           title: "Level 4 (Var A): Zigzag Pillars",
           instructions: "Combine all three transformation rules to weave past the central pillars.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var A",
           checkChallenge: (history) => {
@@ -373,7 +384,7 @@
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 17, y: 11 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS], // Requires 1 rot, 1 ref to match
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x: 6, y: 0}, {x: 6, y: 1}, {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 6, y: 5}, {x: 6, y: 6}, {x: 6, y: 7}, {x: 6, y: 8},{x: 12, y: 6}, {x: 12, y: 7}, {x: 12, y: 8}, {x: 12, y: 9}, {x: 12, y: 10}, {x: 12, y: 11}, {x: 12, y: 12}, {x: 12, y: 13}, {x: 12, y: 14}]
         },
@@ -381,7 +392,7 @@
           id: 4,
           title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var B",
           checkChallenge: (history) => {
@@ -393,7 +404,7 @@
           startPivot: { x: 2, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 17, y: 3 },
-          targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:0, y:8},{x:1, y:8},{x:2, y:8},{x:3, y:8},{x:4, y:8},{x:5, y:8},{x:6, y:8},{x:7, y:8},{x:8, y:8},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4},{x:17, y:4},{x:18, y:4},{x:19, y:4}]
         },
@@ -401,7 +412,7 @@
           id: 4,
           title: "Level 4 (Var C): Checkerboard Maze",
           instructions: "Pass diagonal block walls requiring precise rotation and a single flip.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var C",
           checkChallenge: (history) => {
@@ -413,7 +424,7 @@
           startPivot: { x: 1, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 18, y: 13 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:13, y:10},{x:13, y:11},{x:13, y:12},{x:13, y:13},{x:13, y:14}]
         },
@@ -421,7 +432,7 @@
           id: 4,
           title: "Level 4 (Var D): Split Center Corridors",
           instructions: "Use all three transformation classes to weave through the center opening.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var D",
           checkChallenge: (history) => {
@@ -433,7 +444,7 @@
           startPivot: { x: 16, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 11 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:8},{x:10, y:9},{x:10, y:10},{x:10, y:11},{x:10, y:12},{x:10, y:13},{x:10, y:14}]
         },
@@ -441,7 +452,7 @@
           id: 4,
           title: "Level 4 (Var E): S-Curve Siphon",
           instructions: "Navigate through the double bend layout to reach the goal area.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
+          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var E",
           checkChallenge: (history) => {
@@ -453,7 +464,7 @@
           startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 7 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:5, y:3},{x:5, y:4},{x:5, y:5},{x:5, y:6},{x:5, y:7},{x:14, y:7},{x:14, y:8},{x:14, y:9},{x:14, y:10},{x:14, y:11}]
         }
@@ -472,7 +483,7 @@
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 12 },
-          targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:9, y:3},{x:10, y:3},{x:11, y:3},{x:12, y:3},{x:12, y:4},{x:12, y:5},{x:12, y:6},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11}]
         },
@@ -487,7 +498,7 @@
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 2, y: 3 },
-          targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:12},{x:8, y:13},{x:8, y:14},{x:12, y:0},{x:12, y:1},{x:12, y:2},{x:12, y:3},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10}]
         },
@@ -502,7 +513,7 @@
           startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 12 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x: -2.5, y: -0.5}, {x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
         },
@@ -517,7 +528,7 @@
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 2 },
-          targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8},{x:10, y:9},{x:10, y:10}]
         },
@@ -532,7 +543,7 @@
           startPivot: { x: 16, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 3 },
-          targetBlocks: [{x:-0.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:4, y:4},{x:5, y:4},{x:6, y:4},{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4}]
         }
@@ -544,18 +555,19 @@
           id: 6,
           title: "Bonus (Var A): The Cross Maze",
           instructions: "Solve this legendary final puzzle. Reach the destination to unlock Custom Colors!",
-          challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          challengeText: "Bonus Challenge: Match the target exactly using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 6,
           variationLabel: "Var A",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
-            return r >= 2 && f >= 2;
+            const t = history.filter(h => h.type === 'translate').length;
+            return r === 1 && f === 1 && t === 1;
           },
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 12 },
-          targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             {x: 10, y: 4}, {x: 10, y: 5}, {x: 10, y: 6}, {x: 10, y: 8}, {x: 10, y: 9}, {x: 10, y: 10},
@@ -566,18 +578,19 @@
           id: 6,
           title: "Bonus (Var B): The Four Corners",
           instructions: "Weave through the obstacles to reach the goal at the exact orientation.",
-          challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          challengeText: "Bonus Challenge: Match the target exactly using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 6,
           variationLabel: "Var B",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
-            return r >= 2 && f >= 2;
+            const t = history.filter(h => h.type === 'translate').length;
+            return r === 1 && f === 1 && t === 1;
           },
           startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 3, y: 12 },
-          targetBlocks: [{x: -0.5, y: 0.5}, {x: -0.5, y: 1.5}, {x: -0.5, y: 2.5}, {x: -1.5, y: 0.5}, {x: -2.5, y: 0.5}],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             {x: 6, y: 4}, {x: 6, y: 5}, {x: 7, y: 4}, {x: 7, y: 5},
@@ -590,18 +603,19 @@
           id: 6,
           title: "Bonus (Var C): Twin Pillars",
           instructions: "Pass through alternating high and low walls to arrive at the top-right.",
-          challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          challengeText: "Bonus Challenge: Match the target exactly using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 6,
           variationLabel: "Var C",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
-            return r >= 2 && f >= 2;
+            const t = history.filter(h => h.type === 'translate').length;
+            return r === 1 && f === 1 && t === 1;
           },
           startPivot: { x: 2, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 2 },
-          targetBlocks: [{ x: 0.5, y: -0.5 }, { x: 0.5, y: -1.5 }, { x: 0.5, y: -2.5 }, { x: 1.5, y: -0.5 }, { x: 2.5, y: -0.5 }],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 8, y: 3}, {x: 8, y: 4}, {x: 8, y: 5},
@@ -612,18 +626,19 @@
           id: 6,
           title: "Bonus (Var D): The Central Ring",
           instructions: "Reach the target inside the central block cage.",
-          challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          challengeText: "Bonus Challenge: Match the target exactly using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 6,
           variationLabel: "Var D",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
-            return r >= 2 && f >= 2;
+            const t = history.filter(h => h.type === 'translate').length;
+            return r === 1 && f === 1 && t === 1;
           },
           startPivot: { x: 3, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 7 },
-          targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             {x: 7, y: 4}, {x: 8, y: 4}, {x: 9, y: 4}, {x: 10, y: 4}, {x: 11, y: 4}, {x: 12, y: 4},
@@ -636,18 +651,19 @@
           id: 6,
           title: "Bonus (Var E): Diagonal Slash",
           instructions: "Maneuver through the diagonal wall to match the final target.",
-          challengeText: "Bonus Challenge: Match the target exactly using at least two reflections and two rotations!",
+          challengeText: "Bonus Challenge: Match the target exactly using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 6,
           variationLabel: "Var E",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
-            return r >= 2 && f >= 2;
+            const t = history.filter(h => h.type === 'translate').length;
+            return r === 1 && f === 1 && t === 1;
           },
           startPivot: { x: 2, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 11 },
-          targetBlocks: [{ x: 0.5, y: -0.5 }, { x: 0.5, y: -1.5 }, { x: 0.5, y: -2.5 }, { x: 1.5, y: -0.5 }, { x: 2.5, y: -0.5 }],
+          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             {x: 4, y: 2}, {x: 5, y: 3}, {x: 6, y: 4}, {x: 7, y: 5}, {x: 8, y: 6},
@@ -770,6 +786,15 @@
       const [secretNode, setSecretNode] = useState(null);
       const [bonusAlert, setBonusAlert] = useState(null);
 
+      // Narwhal Mini-Game States
+      const narwhalSpawnedThisLevel = useRef(false);
+      const [isNarwhalActive, setIsNarwhalActive] = useState(false);
+      const narwhalRef = useRef(null);
+      const [mathQuiz, setMathQuiz] = useState(null);
+      
+      // Forces re-renders for the canvas animation loop
+      const [tick, setTick] = useState(0);
+
       // Custom Perk Unlocks
       const [colorPickerUnlocked, setColorPickerUnlocked] = useState(false);
       const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0]);
@@ -822,6 +847,9 @@
         setSheetStatus('idle');
         setSelectedMirrorLineIdx(0); // Reset mirror line selector
         setBonusAlert(null);
+        setMathQuiz(null);
+        setIsNarwhalActive(false);
+        narwhalSpawnedThisLevel.current = false;
         resetCommandUI();
 
         // Generate a random, valid invisible Secret Node
@@ -849,6 +877,101 @@
         }
 
       }, [level, gameStarted, maxTimeLimit]);
+
+      // Trigger Narwhal Random Spawn
+      useEffect(() => {
+        if (status === 'playing' && gameStarted && !narwhalSpawnedThisLevel.current && !mathQuiz) {
+            // Spawn between 5 and 20 seconds into the level
+            const delay = Math.random() * 15000 + 5000; 
+            const timer = setTimeout(() => {
+                narwhalSpawnedThisLevel.current = true;
+                const fromLeft = Math.random() > 0.5;
+                narwhalRef.current = {
+                    x: fromLeft ? -2 : GRID_W + 2,
+                    y: Math.random() * (GRID_H - 4) + 2,
+                    vx: (fromLeft ? 1 : -1) * (0.15 + Math.random() * 0.1), // Speedy!
+                    vy: (Math.random() - 0.5) * 0.08,
+                    active: true,
+                    dir: fromLeft ? 1 : -1
+                };
+                setIsNarwhalActive(true);
+            }, delay);
+            return () => clearTimeout(timer);
+        }
+      }, [status, gameStarted, mathQuiz]);
+
+      // Narwhal Animation Loop Trigger
+      useEffect(() => {
+        let interval;
+        if (isNarwhalActive && !mathQuiz) {
+           interval = setInterval(() => {
+              setTick(t => t + 1);
+           }, 30); // ~33fps redraw
+        }
+        return () => clearInterval(interval);
+      }, [isNarwhalActive, mathQuiz]);
+
+      // Math Quiz Countdown Timer
+      useEffect(() => {
+        let timer;
+        if (mathQuiz && mathQuiz.timeLeft > 0) {
+            timer = setInterval(() => {
+                setMathQuiz(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
+            }, 1000);
+        } else if (mathQuiz && mathQuiz.timeLeft <= 0) {
+            setMathQuiz(null);
+            setMessage("Too slow! The Narwhal swam away.");
+            setTimeout(() => setMessage(''), 3000);
+        }
+        return () => clearInterval(timer);
+      }, [mathQuiz]);
+
+      const generateMathQuiz = () => {
+          const isMult = Math.random() > 0.5;
+          let a, b, answer, qStr;
+          
+          if (isMult) {
+              a = Math.floor(Math.random() * 10) + 1;
+              b = Math.floor(Math.random() * 10) + 1;
+              answer = a * b;
+              qStr = `${a} × ${b}`;
+          } else {
+              b = Math.floor(Math.random() * 10) + 1;
+              answer = Math.floor(Math.random() * 10) + 1;
+              a = answer * b;
+              qStr = `${a} ÷ ${b}`;
+          }
+
+          // Generate 3 wrong options
+          let options = new Set([answer]);
+          while(options.size < 4) {
+              let offset = Math.floor(Math.random() * 10) - 5;
+              if (offset === 0) offset = 1;
+              let wrong = answer + offset;
+              if (wrong > 0) options.add(wrong);
+          }
+          
+          let optionsArr = Array.from(options);
+          optionsArr.sort(() => Math.random() - 0.5);
+
+          setMathQuiz({
+              question: qStr,
+              answer: answer,
+              options: optionsArr,
+              timeLeft: 10
+          });
+      };
+
+      const handleQuizAnswer = (opt) => {
+          if (opt === mathQuiz.answer) {
+              setSecondsLeft(prev => prev + 60);
+              setMessage("Correct! +1 Minute of Bonus Time granted by the Narwhal!");
+          } else {
+              setMessage("Incorrect! The Narwhal swam away.");
+          }
+          setMathQuiz(null);
+          setTimeout(() => setMessage(''), 4000);
+      };
 
       // Automatically select a random variation on level index swap
       useEffect(() => {
@@ -921,7 +1044,7 @@
       // Universal Keyboard Listeners for All Tabs
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (status !== 'playing' || isGameOver || showContinueOffer) return;
+          if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -990,7 +1113,7 @@
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [status, isGameOver, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines]);
+      }, [status, isGameOver, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz]);
 
       // Handle Life Loss (Due to crashes or timer)
       const handleLifeLoss = (reasonMessage) => {
@@ -1018,7 +1141,7 @@
       // Live Countdown Timer Hook
       useEffect(() => {
         let timerId = null;
-        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer) {
+        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer && !mathQuiz) {
           timerId = setInterval(() => {
             setSecondsLeft(prev => {
               if (prev <= 1) {
@@ -1033,7 +1156,7 @@
         return () => {
           if (timerId) clearInterval(timerId);
         };
-      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit]);
+      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit, mathQuiz]);
 
       // Continue action logic
       const handleContinue = () => {
@@ -1121,7 +1244,7 @@
 
       // Execute Command
       const commitMovement = () => {
-        if (status !== 'playing' || isGameOver || showContinueOffer) return;
+        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
 
         // Verify Continuous Translation Path to Prevent Jumping Over Barriers!
         if (activeTab === 'translate') {
@@ -1202,6 +1325,7 @@
 
           setStatus('won');
           setChallengeCompleted(true);
+          setIsNarwhalActive(false); // Stop narwhal when won
 
           // Submit student score metrics asynchronously
           logProgressToGoogleSheets(updatedHistory, isChallengeMet);
@@ -1245,10 +1369,40 @@
         setSecondsLeft(maxTimeLimit);
         setChallengeCompleted(false);
         setSheetStatus('idle');
+        setMathQuiz(null);
+        setIsNarwhalActive(false);
+        narwhalSpawnedThisLevel.current = false;
         resetCommandUI();
       };
 
-      // --- RENDERING CANVAS ---
+      // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
+      const handleCanvasClick = (e) => {
+        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
+        
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        const relativeX = (clientX - rect.left) / rect.width;
+        const relativeY = (clientY - rect.top) / rect.height;
+        
+        const gx = relativeX * GRID_W;
+        const gy = (1 - relativeY) * GRID_H; 
+        
+        // Did they click the Narwhal?
+        if (isNarwhalActive && narwhalRef.current) {
+            const dist = Math.hypot(gx - narwhalRef.current.x, gy - narwhalRef.current.y);
+            if (dist < 2.5) { // Hitbox radius
+                setIsNarwhalActive(false); // Catch it!
+                generateMathQuiz();
+            }
+        }
+      };
+
+      // --- RENDERING CANVAS (With dynamic Narwhal integration) ---
       useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas || !gameStarted) return;
@@ -1421,7 +1575,28 @@
         ctx.fill();
         ctx.stroke();
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, secretNode]);
+        // 🦄 Draw Narwhal
+        if (isNarwhalActive && narwhalRef.current) {
+           const nw = narwhalRef.current;
+           nw.x += nw.vx;
+           nw.y += nw.vy;
+
+           ctx.save();
+           ctx.translate(nw.x * CELL_SIZE, CANVAS_HEIGHT - nw.y * CELL_SIZE);
+           if (nw.vx < 0) ctx.scale(-1, 1); // Face direction of travel
+           ctx.font = '40px Arial';
+           ctx.textAlign = 'center';
+           ctx.textBaseline = 'middle';
+           ctx.fillText('🦄', 0, 0);
+           ctx.restore();
+
+           // Despawn if it leaves bounds completely
+           if ((nw.vx > 0 && nw.x > GRID_W + 3) || (nw.vx < 0 && nw.x < -3)) {
+               setIsNarwhalActive(false);
+           }
+        }
+
+      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, secretNode, tick, isNarwhalActive]);
 
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
@@ -1713,14 +1888,48 @@
                 >
                   <canvas 
                     ref={canvasRef}
+                    onMouseDown={handleCanvasClick}
+                    onTouchStart={handleCanvasClick}
                     style={{ 
                       width: '100%',
                       height: '100%',
                       display: 'block',
+                      cursor: isNarwhalActive ? 'crosshair' : 'default',
                       objectFit: 'contain'
                     }}
                   />
                   
+                  {/* MATH QUIZ MODAL FOR NARWHAL */}
+                  {mathQuiz && (
+                    <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+                      <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full animate-bounce">
+                         <h3 className="text-xl md:text-2xl font-black text-fuchsia-600 mb-2">🦄 Narwhal Caught!</h3>
+                         <p className="text-slate-600 font-bold mb-4">Quick! Answer this to gain +1 Minute!</p>
+                         
+                         <div className="text-4xl md:text-5xl font-black text-slate-800 mb-6 bg-slate-100 py-4 rounded-xl border border-slate-200 shadow-inner">
+                            {mathQuiz.question} = ?
+                         </div>
+
+                         <div className="grid grid-cols-2 gap-3 mb-4">
+                            {mathQuiz.options.map((opt, i) => (
+                               <button 
+                                 key={i} 
+                                 onClick={() => handleQuizAnswer(opt)}
+                                 className="py-3 bg-blue-100 hover:bg-blue-600 hover:text-white text-blue-900 font-extrabold text-xl rounded-xl transition-colors border-2 border-blue-200 hover:border-blue-700 shadow-sm"
+                               >
+                                  {opt}
+                               </button>
+                            ))}
+                         </div>
+                         
+                         <div className="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden">
+                           <div className="bg-red-500 h-3 rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(mathQuiz.timeLeft / 10) * 100}%` }}></div>
+                         </div>
+                         <p className="text-red-500 font-bold text-xs uppercase tracking-widest">{mathQuiz.timeLeft} Seconds Left!</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Bonus Trigger Modal Alert */}
                   {bonusAlert && (
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-950 px-6 py-3 rounded-2xl shadow-xl border-4 border-yellow-200 z-20 text-center animate-bounce">
@@ -2014,7 +2223,7 @@
                       Undo Step
                     </button>
                     <button 
-                      onClick={rerollVariation}
+                      onClick={restartLevel}
                       className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
                       title="Load another randomized puzzle for this level"
                     >
