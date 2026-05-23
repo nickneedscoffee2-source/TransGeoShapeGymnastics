@@ -547,7 +547,7 @@
           },
           startPivot: { x: 1, y: 13 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 13 },
+          targetPivot: { x: 18, y: 1 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
           obstacles: [{x:4, y:0},{x:4, y:1},{x:4, y:2},{x:4, y:3},{x:4, y:4},{x:4, y:5},{x:4, y:6},{x:4, y:7},{x:4, y:8},{x:4, y:9},{x:4, y:10},{x:15, y:4},{x:15, y:5},{x:15, y:6},{x:15, y:7},{x:15, y:8},{x:15, y:9},{x:15, y:10},{x:15, y:11},{x:15, y:12},{x:15, y:13},{x:15, y:14}]
         },
@@ -695,14 +695,6 @@
         };
       }, [history]);
 
-      // Handle Form Submission on Start Screen
-      const handleStartGame = (e) => {
-        e.preventDefault();
-        if (studentName.trim().length > 0) {
-          setGameStarted(true);
-        }
-      };
-
       // Drag State Tracker
       const [isDragging, setIsDragging] = useState(false);
 
@@ -763,25 +755,13 @@
         setVariationIdx(randomVarIdx);
       }, [levelIdx, gameStarted]);
 
-      // Live Countdown Timer Hook
-      useEffect(() => {
-        let timerId = null;
-        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer) {
-          timerId = setInterval(() => {
-            setSecondsLeft(prev => {
-              if (prev <= 1) {
-                clearInterval(timerId);
-                handleLifeLoss("Time ran out! You lost a life.");
-                return maxTimeLimit;
-              }
-              return prev - 1;
-            });
-          }, 1000);
+      // Handle Form Submission on Start Screen
+      const handleStartGame = (e) => {
+        e.preventDefault();
+        if (studentName.trim().length > 0) {
+          setGameStarted(true);
         }
-        return () => {
-          if (timerId) clearInterval(timerId);
-        };
-      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit]);
+      };
 
       const resetCommandUI = () => {
         setTransDistX(0);
@@ -852,6 +832,26 @@
           }
         }
       };
+
+      // Live Countdown Timer Hook
+      useEffect(() => {
+        let timerId = null;
+        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer) {
+          timerId = setInterval(() => {
+            setSecondsLeft(prev => {
+              if (prev <= 1) {
+                clearInterval(timerId);
+                handleLifeLoss("Time ran out! You lost a life.");
+                return maxTimeLimit;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+        return () => {
+          if (timerId) clearInterval(timerId);
+        };
+      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit]);
 
       // Continue action logic
       const handleContinue = () => {
