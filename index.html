@@ -38,6 +38,16 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    
+    @keyframes ping-slow {
+      75%, 100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+    .animate-ping-slow {
+      animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
   </style>
 </head>
 <body class="text-slate-800">
@@ -269,7 +279,7 @@
         }
       ],
 
-      // --- LEVEL 3: MIRROR MAZE (Reflections requiring massive leaps) ---
+      // --- LEVEL 3: MIRROR MAZE (Reflections across explicit lines) ---
       [
         {
           id: 3,
@@ -736,11 +746,8 @@
       const [gameStarted, setGameStarted] = useState(false);
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
-      // Lives, Continues & Game Over States
-      const [lives, setLives] = useState(3);
-      const [continues, setContinues] = useState(2);
+      // Game Over States
       const [isGameOver, setIsGameOver] = useState(false);
-      const [showContinueOffer, setShowContinueOffer] = useState(false);
 
       // Score Tracking States
       const [sheetStatus, setSheetStatus] = useState('idle'); 
@@ -812,13 +819,6 @@
       const level = useMemo(() => {
         return LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx]);
-
-      // Initialize lives
-      useEffect(() => {
-        if (gameStarted) {
-          setLives(difficulty === 'narwhal' ? 2 : 3);
-        }
-      }, [gameStarted, difficulty]);
 
       // Handle Level or Variation load
       useEffect(() => {
@@ -918,7 +918,7 @@
               question: qStr,
               answer: answer,
               options: optionsArr,
-              timeLeft: 10
+              timeLeft: 7 // Adjusted to 7 seconds!
           });
       };
 
@@ -1004,7 +1004,7 @@
       // Universal Keyboard Listeners for All Tabs
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
+          if (status !== 'playing' || isGameOver || mathQuiz) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1073,41 +1073,39 @@
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [status, isGameOver, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz]);
+      }, [status, isGameOver, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz]);
 
-      // Handle Life Loss (Due to crashes or timer)
-      const handleLifeLoss = (reasonMessage) => {
-        const nextLives = lives - 1;
-        if (nextLives > 0) {
-          setLives(nextLives);
-          setPivot(level.startPivot);
-          setBlocks(level.startBlocks);
-          setHistory([]);
-          setCurrentObstacles([...level.obstacles]);
-          setSecondsLeft(maxTimeLimit);
-          resetCommandUI();
-          setStatus('playing');
-          setMessage(`${reasonMessage} Board reset!`);
-        } else {
-          setLives(0);
-          if (continues > 0) {
-            setShowContinueOffer(true);
-          } else {
-            setIsGameOver(true);
-          }
-        }
+      // Handle Crash Penalty (-10s instead of losing a life)
+      const handleCrash = (reasonMessage) => {
+        setPivot(level.startPivot);
+        setBlocks(level.startBlocks);
+        setHistory([]);
+        setCurrentObstacles([...level.obstacles]);
+        resetCommandUI();
+        setStatus('playing');
+        
+        setSecondsLeft(prev => {
+            const newTime = prev - 10;
+            if (newTime <= 0) {
+                setIsGameOver(true);
+                return 0;
+            }
+            setMessage(`⚠️ ${reasonMessage} Penalty: -10 Seconds!`);
+            setTimeout(() => setMessage(''), 4000);
+            return newTime;
+        });
       };
 
       // Live Countdown Timer Hook
       useEffect(() => {
         let timerId = null;
-        if (status === 'playing' && gameStarted && !isGameOver && !showContinueOffer && !mathQuiz) {
+        if (status === 'playing' && gameStarted && !isGameOver && !mathQuiz) {
           timerId = setInterval(() => {
             setSecondsLeft(prev => {
               if (prev <= 1) {
                 clearInterval(timerId);
-                handleLifeLoss("Time ran out! You lost a life.");
-                return maxTimeLimit;
+                setIsGameOver(true);
+                return 0;
               }
               return prev - 1;
             });
@@ -1116,34 +1114,14 @@
         return () => {
           if (timerId) clearInterval(timerId);
         };
-      }, [status, gameStarted, isGameOver, showContinueOffer, lives, maxTimeLimit, mathQuiz]);
-
-      // Continue action logic
-      const handleContinue = () => {
-        if (continues > 0) {
-          setContinues(prev => prev - 1);
-          setLives(difficulty === 'narwhal' ? 2 : 3);
-          setShowContinueOffer(false);
-          setPivot(level.startPivot);
-          setBlocks(level.startBlocks);
-          setCurrentObstacles([...level.obstacles]);
-          setHistory([]);
-          setSecondsLeft(maxTimeLimit);
-          resetCommandUI();
-          setStatus('playing');
-          setMessage(`Continued! Lives restored to ${difficulty === 'narwhal' ? 2 : 3}.`);
-        }
-      };
+      }, [status, gameStarted, isGameOver, mathQuiz]);
 
       // Game Over restart logic
       const handleResetToLobby = () => {
         setStudentName('');
         setGameStarted(false);
-        setLives(3);
-        setContinues(2);
         setIsGameOver(false);
         setShowTrophyCelebration(false);
-        setShowContinueOffer(false);
         setLevelIdx(0);
         setVariationIdx(0);
       };
@@ -1204,19 +1182,19 @@
 
       // Execute Command
       const commitMovement = () => {
-        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
+        if (status !== 'playing' || isGameOver || mathQuiz) return;
 
         // Verify Continuous Translation Path to Prevent Jumping Over Barriers!
         if (activeTab === 'translate') {
           if (checkPathCollision(pivot, pendingState.pivot, blocks, currentObstacles)) {
-            handleLifeLoss("Path Blocked! Your shape crashed into a solid wall mid-slide.");
+            handleCrash("Path Blocked! Your shape crashed into a solid wall mid-slide.");
             return;
           }
         }
 
         const absPendingCoords = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
         
-        // Handle Out of Bounds Safely Without Losing a Life
+        // Handle Out of Bounds Safely Without Penalty
         const isOutOfBounds = absPendingCoords.some(c => 
           Math.floor(c.x) < 0 || Math.floor(c.x) >= GRID_W || 
           Math.floor(c.y) < 0 || Math.floor(c.y) >= GRID_H
@@ -1230,7 +1208,7 @@
 
         // Final Destination Wall Collision Check
         if (checkCollision(absPendingCoords, currentObstacles)) {
-          handleLifeLoss("Collision! Your shape landed on an obstacle.");
+          handleCrash("Collision! Your shape landed on an obstacle.");
           return;
         }
 
@@ -1310,7 +1288,7 @@
 
       // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
       const handleCanvasClick = (e) => {
-        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz) return;
+        if (status !== 'playing' || isGameOver || mathQuiz) return;
         
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -1445,6 +1423,8 @@
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
         
+        const pivotCanvas = getVertexPos(pivot.x, pivot.y);
+        
         if (isMoving && status === 'playing') {
           const ghostAbs = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
           
@@ -1476,6 +1456,49 @@
           ctx.beginPath();
           ctx.arc(ghostPivotCanvas.cx, ghostPivotCanvas.cy, 6, 0, Math.PI * 2);
           ctx.fill();
+
+          // --- GHOST AWARENESS LABELS (Draw Transformation Vector Details) ---
+          ctx.fillStyle = '#1e3a8a';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          
+          let label = "";
+          if (activeTab === 'translate') {
+              const dx = pendingState.pivot.x - pivot.x;
+              const dy = pendingState.pivot.y - pivot.y;
+              label = `X: ${dx > 0 ? '+' : ''}${dx} | Y: ${dy > 0 ? '+' : ''}${dy}`;
+              
+              // Draw dashed line pointing from original pivot to new ghost pivot
+              ctx.beginPath();
+              ctx.moveTo(pivotCanvas.cx, pivotCanvas.cy);
+              ctx.lineTo(ghostPivotCanvas.cx, ghostPivotCanvas.cy);
+              ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)'; // blue line
+              ctx.setLineDash([6, 6]);
+              ctx.lineWidth = 3;
+              ctx.stroke();
+              ctx.setLineDash([]);
+          } else if (activeTab === 'rotate') {
+              label = `Rotate ${rotAngle}° ${rotDir.toUpperCase()}`;
+          } else if (activeTab === 'reflect') {
+              const mirror = level.mirrorLines[selectedMirrorLineIdx];
+              if (mirror) {
+                  label = `Reflect ${mirror.axis === 'vertical' ? 'X=' : 'Y='}${mirror.pos}`;
+              }
+          }
+
+          // Draw a small white background pill for the text so it's readable over grid
+          const textMetrics = ctx.measureText(label);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillRoundRect = function(x, y, w, h, r) {
+            this.beginPath(); this.moveTo(x+r, y); this.lineTo(x+w-r, y); this.quadraticCurveTo(x+w, y, x+w, y+r);
+            this.lineTo(x+w, y+h-r); this.quadraticCurveTo(x+w, y+h, x+w-r, y+h); this.lineTo(x+r, y+h);
+            this.quadraticCurveTo(x, y+h, x, y+h-r); this.lineTo(x, y+r); this.quadraticCurveTo(x, y, x+r, y); this.closePath(); this.fill();
+          };
+          ctx.fillRoundRect(ghostPivotCanvas.cx - textMetrics.width/2 - 8, ghostPivotCanvas.cy - 30, textMetrics.width + 16, 22, 6);
+          
+          ctx.fillStyle = '#1e40af';
+          ctx.fillText(label, ghostPivotCanvas.cx, ghostPivotCanvas.cy - 12);
         }
 
         const currentAbs = getAbsoluteCoords(pivot, blocks);
@@ -1488,7 +1511,6 @@
           ctx.strokeRect(x, y, w, h);
         });
 
-        const pivotCanvas = getVertexPos(pivot.x, pivot.y);
         ctx.fillStyle = '#ef4444'; 
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2.5;
@@ -1624,7 +1646,7 @@
                       { 
                         key: 'narwhal', 
                         label: '🐋 Narwhal Mode', 
-                        desc: '15 Sec | 2 Lives', 
+                        desc: '15 Sec Timer', 
                         color: 'border-fuchsia-500 text-fuchsia-700 bg-fuchsia-50', 
                         locked: !narwhalUnlocked 
                       }
@@ -1677,10 +1699,10 @@
         return (
           <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
-              <div className="text-5xl">💀</div>
-              <h1 className="text-3xl font-black text-red-600">GAME OVER</h1>
+              <div className="text-5xl">⏰</div>
+              <h1 className="text-3xl font-black text-red-600">TIME'S UP!</h1>
               <p className="text-slate-600 font-medium">
-                You used all of your lives and continues! Better luck next time, {studentName}.
+                You ran out of time on this board, {studentName}.
               </p>
               <button
                 onClick={handleResetToLobby}
@@ -1688,37 +1710,6 @@
               >
                 Restart Game
               </button>
-            </div>
-          </div>
-        );
-      }
-
-      if (showContinueOffer) {
-        return (
-          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900/90 p-4 z-50">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
-              <div className="text-5xl animate-pulse">🔄</div>
-              <h1 className="text-2xl font-black text-slate-800">Use a Continue?</h1>
-              <p className="text-slate-600 font-medium">
-                You lost all of your lives on this board! You can continue to keep your current progress.
-              </p>
-              <p className="text-sm font-bold text-purple-600">
-                Continues Remaining: {continues} / 2
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={handleContinue}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl transition-all shadow-lg active:scale-95"
-                >
-                  Continue Game
-                </button>
-                <button
-                  onClick={handleResetToLobby}
-                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
-                >
-                  Give Up & Restart
-                </button>
-              </div>
             </div>
           </div>
         );
@@ -1765,28 +1756,27 @@
             
             {/* LEFT COMPONENT: Board Display Panel (Proportionally Scaled with Aspect containment) */}
             <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden relative">
-              <div className="flex justify-between items-center mb-1.5 shrink-0">
-                <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
-                  {level.title}
-                </h2>
-                
-                {/* Timer and Statistics Tracker HUD */}
-                <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
-                  <span className="text-red-500 flex items-center gap-0.5">
-                    {Array.from({ length: lives }).map((_, idx) => (
-                      <span key={idx}>❤️</span>
-                    ))}
-                    {Array.from({ length: (difficulty === 'narwhal' ? 2 : 3) - lives }).map((_, idx) => (
-                      <span key={idx} className="opacity-30">🖤</span>
-                    ))}
-                  </span>
-                  <span className="text-slate-300">|</span>
-                  <span className={secondsLeft <= 10 ? "text-red-600 font-extrabold animate-pulse" : "text-slate-500"}>
-                    ⏱ {Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, '0')}
-                  </span>
-                  <span className="text-slate-300">|</span>
-                  <span className="text-slate-500">👟 {moveTally.total} Moves</span>
-                </div>
+              
+              <div className="flex flex-col mb-1.5 shrink-0">
+                 <div className="flex justify-between items-center w-full">
+                    <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
+                      {level.title}
+                    </h2>
+                    
+                    {/* Simplified Stats Tracker HUD - No Lives */}
+                    <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
+                      <span className="text-slate-500">👟 {moveTally.total} Moves</span>
+                      <span className="text-slate-300">|</span>
+                      <span className={`font-mono font-bold ${secondsLeft <= 10 ? "text-red-600 animate-pulse" : "text-slate-600"}`}>
+                        ⏱ {Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                 </div>
+
+                 {/* Shrinking Animated Time Bar */}
+                 <div className="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden shadow-inner">
+                   <div className={`h-2.5 rounded-full transition-all duration-1000 ease-linear ${secondsLeft < 15 ? 'bg-red-500 animate-pulse' : secondsLeft < 30 ? 'bg-yellow-400' : 'bg-emerald-500'}`} style={{ width: `${Math.max(0, (secondsLeft / maxTimeLimit) * 100)}%` }}></div>
+                 </div>
               </div>
               
               {/* This container dynamically holds the aspect-constrained canvas */}
@@ -1838,7 +1828,7 @@
                          </div>
                          
                          <div className="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden">
-                           <div className="bg-red-500 h-3 rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(mathQuiz.timeLeft / 10) * 100}%` }}></div>
+                           <div className="bg-red-500 h-3 rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(mathQuiz.timeLeft / 7) * 100}%` }}></div>
                          </div>
                          <p className="text-red-500 font-bold text-xs uppercase tracking-widest">{mathQuiz.timeLeft} Seconds Left!</p>
                       </div>
@@ -2115,7 +2105,7 @@
                 <div className="flex flex-col gap-2 pt-2 border-t shrink-0">
                   <button 
                     onClick={commitMovement}
-                    disabled={status !== 'playing' || isGameOver || showContinueOffer}
+                    disabled={status !== 'playing' || isGameOver}
                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-extrabold text-base rounded-lg shadow-md transition-all active:scale-[0.98]"
                   >
                     Commit Movement
