@@ -192,7 +192,7 @@
           },
           startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 10, y: 1 },
+          targetPivot: { x: 10, y: 3 }, // Adjusted to keep target strictly on grid
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:6, y:6},{x:7, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
@@ -298,7 +298,7 @@
         },
         {
           id: 3,
-          title: "Level 3 (Var C): High Divider Mirror (Right Start)",
+          title: "Level 3 (Var C): High Divider Mirror",
           instructions: "Fling the shape into the upper compartment using reflection mechanics.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
@@ -379,7 +379,7 @@
         },
         {
           id: 4,
-          title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
+          title: "Level 4 (Var B): Horizontal Slalom",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
           parMoves: 3,
@@ -392,7 +392,7 @@
           },
           startPivot: { x: 2, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 2 },
+          targetPivot: { x: 17, y: 3 }, // Adjusted for bounds
           targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:0, y:8},{x:1, y:8},{x:2, y:8},{x:3, y:8},{x:4, y:8},{x:5, y:8},{x:6, y:8},{x:7, y:8},{x:8, y:8},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4},{x:17, y:4},{x:18, y:4},{x:19, y:4}]
@@ -452,7 +452,7 @@
           },
           startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 7 },
+          targetPivot: { x: 3, y: 7 }, // Adjusted for bounds
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:5, y:3},{x:5, y:4},{x:5, y:5},{x:5, y:6},{x:5, y:7},{x:14, y:7},{x:14, y:8},{x:14, y:9},{x:14, y:10},{x:14, y:11}]
@@ -471,7 +471,7 @@
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 12 },
+          targetPivot: { x: 3, y: 12 }, // Adjusted for bounds
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:9, y:3},{x:10, y:3},{x:11, y:3},{x:12, y:3},{x:12, y:4},{x:12, y:5},{x:12, y:6},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11}]
@@ -486,7 +486,7 @@
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 2 },
+          targetPivot: { x: 2, y: 3 }, // Adjusted for bounds
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:12},{x:8, y:13},{x:8, y:14},{x:12, y:0},{x:12, y:1},{x:12, y:2},{x:12, y:3},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10}]
@@ -501,7 +501,7 @@
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 12 },
+          targetPivot: { x: 3, y: 12 }, // Adjusted for bounds
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x: -2.5, y: -0.5}, {x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
@@ -516,7 +516,7 @@
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 2 },
+          targetPivot: { x: 3, y: 2 }, // Adjusted for bounds
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8},{x:10, y:9},{x:10, y:10}]
@@ -531,7 +531,7 @@
           checkChallenge: (history) => history.length <= 5,
           startPivot: { x: 16, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 1 },
+          targetPivot: { x: 3, y: 3 }, // Adjusted for bounds
           targetBlocks: [{x:-0.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:4, y:4},{x:5, y:4},{x:6, y:4},{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4}]
@@ -554,7 +554,7 @@
           },
           startPivot: { x: 16, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 13 },
+          targetPivot: { x: 3, y: 13 }, // Adjusted for bounds
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x: 0, y: 11}, {x: 1, y: 11}, {x: 2, y: 11}, {x: 3, y: 11}, {x: 4, y: 11}, {x: 5, y: 11}, {x: 5, y: 10}, {x: 5, y: 9}, {x: 5, y: 8}, {x: 5, y: 7}, {x: 5, y: 6}, {x: 5, y: 5}, {x: 5, y: 4}, {x: 5, y: 3}, {x: 5, y: 2}, {x: 5, y: 1}, {x: 10, y: 14}, {x: 10, y: 13}, {x: 10, y: 12}, {x: 10, y: 11}, {x: 10, y: 10}, {x: 10, y: 9}, {x: 10, y: 8}, {x: 10, y: 7}, {x: 10, y: 6}, {x: 10, y: 5}, {x: 11, y: 5}, {x: 12, y: 5}, {x: 13, y: 5}, {x: 14, y: 5}, {x: 15, y: 5}, {x: 15, y: 6}, {x: 15, y: 7}, {x: 15, y: 8}, {x: 15, y: 9}, {x: 15, y: 10}, {x: 15, y: 11}, {x: 15, y: 12}]
@@ -571,9 +571,9 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 16, y: 13 },
+          startPivot: { x: 16, y: 12 }, // Adjusted for bounds
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 1 },
+          targetPivot: { x: 3, y: 3 }, // Adjusted for bounds
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:4, y:0},{x:4, y:1},{x:4, y:2},{x:4, y:3},{x:4, y:4},{x:4, y:5},{x:4, y:6},{x:4, y:7},{x:4, y:8},{x:4, y:9},{x:4, y:10},{x:15, y:4},{x:15, y:5},{x:15, y:6},{x:15, y:7},{x:15, y:8},{x:15, y:9},{x:15, y:10},{x:15, y:11},{x:15, y:12},{x:15, y:13},{x:15, y:14}]
@@ -592,7 +592,7 @@
           },
           startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 12 },
+          targetPivot: { x: 3, y: 12 }, // Adjusted for bounds
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:6, y:8},{x:12, y:6},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
@@ -630,7 +630,7 @@
           },
           startPivot: { x: 16, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 1 },
+          targetPivot: { x: 3, y: 3 }, // Adjusted for bounds
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:9},{x:6, y:10},{x:6, y:11},{x:6, y:12},{x:6, y:13},{x:6, y:14},{x:13, y:0},{x:13, y:1},{x:13, y:2},{x:13, y:3},{x:13, y:4},{x:13, y:5},{x:13, y:9},{x:13, y:10},{x:13, y:11},{x:13, y:12},{x:13, y:13},{x:13, y:14}]
@@ -1073,7 +1073,7 @@
           await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors', // Avoids cross-origin preflight blockers
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
           setSheetStatus('success');
@@ -1104,8 +1104,8 @@
         );
 
         if (isOutOfBounds) {
-          setStatus('crashed');
-          setMessage("Move Invalid! Your shape would go off the grid boundaries. Please Undo and adjust your values.");
+          setMessage("⚠️ MOVE REJECTED: Your shape would fall off the board! Adjust your numbers.");
+          setTimeout(() => setMessage(''), 4000);
           return;
         }
 
@@ -2057,7 +2057,7 @@
                       Undo Step
                     </button>
                     <button 
-                      onClick={rerollVariation}
+                      onClick={restartLevel}
                       className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
                       title="Load another randomized puzzle for this level"
                     >
