@@ -656,7 +656,8 @@
       for (let coord of absCoords) {
         const gridX = Math.floor(coord.x);
         const gridY = Math.floor(coord.y);
-        if (gridX < 0 || gridX >= GRID_W || gridY < 0 || gridY >= GRID_H) return true;
+        // We do NOT instantly return true for out of bounds here anymore, 
+        // to prevent "unfair resets" during drag/evaluation. It is handled gracefully separately.
         if (obstacles.some(obs => obs.x === gridX && obs.y === gridY)) return true;
       }
       return false;
@@ -676,7 +677,9 @@
           x: Math.round(startP.x + dx * t),
           y: Math.round(startP.y + dy * t)
         };
-        if (checkCollision(getAbsoluteCoords(midP, blocks), obstacles)) return true;
+        const absCoords = getAbsoluteCoords(midP, blocks);
+        // If the path touches an obstacle, it's blocked.
+        if (obstacles.some(obs => absCoords.some(c => Math.floor(c.x) === obs.x && Math.floor(c.y) === obs.y))) return true;
       }
       return false;
     };
@@ -859,6 +862,58 @@
         return { pivot: nextPivot, blocks: nextBlocks };
       }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, level.mirrorLines, selectedMirrorLineIdx]);
 
+      // Live Keyboard Listeners for Translations
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (status !== 'playing' || isGameOver || showContinueOffer) return;
+          if (activeTab !== 'translate') return;
+          
+          // Ignore if user is typing in a text field
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+          let dx = (transDirX === 'right' ? 1 : -1) * transDistX;
+          let dy = (transDirY === 'up' ? 1 : -1) * transDistY;
+
+          if (e.key === 'ArrowUp') dy += 1;
+          else if (e.key === 'ArrowDown') dy -= 1;
+          else if (e.key === 'ArrowRight') dx += 1;
+          else if (e.key === 'ArrowLeft') dx -= 1;
+          else return;
+
+          // Prevent default scrolling when using arrows
+          e.preventDefault();
+
+          const newTargetX = pivot.x + dx;
+          const newTargetY = pivot.y + dy;
+
+          // Safe Bounding Box Drag Limits to keep shape entirely in view
+          const minBlockX = Math.min(...blocks.map(b => b.x));
+          const maxBlockX = Math.max(...blocks.map(b => b.x));
+          const minBlockY = Math.min(...blocks.map(b => b.y));
+          const maxBlockY = Math.max(...blocks.map(b => b.y));
+
+          const minAllowedX = -Math.floor(minBlockX);
+          const maxAllowedX = GRID_W - Math.ceil(maxBlockX);
+          const minAllowedY = -Math.floor(minBlockY);
+          const maxAllowedY = GRID_H - Math.ceil(maxBlockY);
+
+          // Force clamp bounds
+          const clampedX = Math.max(minAllowedX, Math.min(maxAllowedX, newTargetX));
+          const clampedY = Math.max(minAllowedY, Math.min(maxAllowedY, newTargetY));
+
+          const finalDx = clampedX - pivot.x;
+          const finalDy = clampedY - pivot.y;
+
+          setTransDistX(Math.abs(finalDx));
+          setTransDirX(finalDx >= 0 ? 'right' : 'left');
+          setTransDistY(Math.abs(finalDy));
+          setTransDirY(finalDy >= 0 ? 'up' : 'down');
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [status, isGameOver, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, pivot, blocks]);
+
       // Handle Life Loss (Due to crashes or timer)
       const handleLifeLoss = (reasonMessage) => {
         const nextLives = lives - 1;
@@ -996,10 +1051,23 @@
           }
         }
 
-        // Final Destination Check
         const absPendingCoords = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
+        
+        // Handle Out of Bounds Safely Without Losing a Life
+        const isOutOfBounds = absPendingCoords.some(c => 
+          Math.floor(c.x) < 0 || Math.floor(c.x) >= GRID_W || 
+          Math.floor(c.y) < 0 || Math.floor(c.y) >= GRID_H
+        );
+
+        if (isOutOfBounds) {
+          setStatus('crashed');
+          setMessage("Move Invalid! Your shape would go off the grid boundaries. Please Undo and adjust your values.");
+          return;
+        }
+
+        // Final Destination Wall Collision Check
         if (checkCollision(absPendingCoords, level.obstacles)) {
-          handleLifeLoss("Collision! Your shape landed on an obstacle or went out of bounds.");
+          handleLifeLoss("Collision! Your shape landed on an obstacle.");
           return;
         }
 
@@ -1016,9 +1084,17 @@
         // Check Win Condition
         const targetAbsCoords = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         if (checkWin(absPendingCoords, targetAbsCoords)) {
-          setStatus('won');
+          
+          // ENFORCE CHALLENGE MET REQUIREMENT FOR PROGRESSION!
           const isChallengeMet = level.checkChallenge(updatedHistory);
-          setChallengeCompleted(isChallengeMet);
+          if (!isChallengeMet) {
+            setStatus('crashed');
+            setMessage("Target reached, but you didn't perform the exact movements requested! Hit Undo and try again using the proper moves.");
+            return; 
+          }
+
+          setStatus('won');
+          setChallengeCompleted(true);
 
           // Submit student score metrics asynchronously
           logProgressToGoogleSheets(updatedHistory, isChallengeMet);
@@ -1098,8 +1174,20 @@
         e.preventDefault();
         const mouseGrid = getCanvasMousePos(e);
         
-        const targetX = Math.max(0, Math.min(GRID_W, Math.round(mouseGrid.x)));
-        const targetY = Math.max(0, Math.min(GRID_H, Math.round(mouseGrid.y)));
+        // Safe Bounding Box Drag Limits to keep shape entirely in view
+        const minBlockX = Math.min(...blocks.map(b => b.x));
+        const maxBlockX = Math.max(...blocks.map(b => b.x));
+        const minBlockY = Math.min(...blocks.map(b => b.y));
+        const maxBlockY = Math.max(...blocks.map(b => b.y));
+
+        const minAllowedX = -Math.floor(minBlockX);
+        const maxAllowedX = GRID_W - Math.ceil(maxBlockX);
+        const minAllowedY = -Math.floor(minBlockY);
+        const maxAllowedY = GRID_H - Math.ceil(maxBlockY);
+
+        // Force clamp bounds during mouse drag
+        const targetX = Math.max(minAllowedX, Math.min(maxAllowedX, Math.round(mouseGrid.x)));
+        const targetY = Math.max(minAllowedY, Math.min(maxAllowedY, Math.round(mouseGrid.y)));
         
         const diffX = targetX - pivot.x;
         const diffY = targetY - pivot.y;
@@ -1232,9 +1320,15 @@
           if (activeTab === 'translate') {
             pathBlocked = checkPathCollision(pivot, pendingState.pivot, blocks, level.obstacles);
           }
+          
+          // Out of Bounds logic indicator for Ghost
+          const isOOB = ghostAbs.some(c => 
+            Math.floor(c.x) < 0 || Math.floor(c.x) >= GRID_W || 
+            Math.floor(c.y) < 0 || Math.floor(c.y) >= GRID_H
+          );
 
-          ctx.fillStyle = pathBlocked ? 'rgba(239, 68, 68, 0.45)' : 'rgba(156, 163, 175, 0.45)'; 
-          ctx.strokeStyle = pathBlocked ? '#b91c1c' : '#4b5563';
+          ctx.fillStyle = (pathBlocked || isOOB) ? 'rgba(239, 68, 68, 0.45)' : 'rgba(156, 163, 175, 0.45)'; 
+          ctx.strokeStyle = (pathBlocked || isOOB) ? '#b91c1c' : '#4b5563';
           ctx.setLineDash([4, 4]);
           ctx.lineWidth = 2;
           ghostAbs.forEach(coord => {
@@ -1275,20 +1369,25 @@
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
           return (
-            <div className="flex flex-wrap items-center gap-y-1.5 text-base font-medium text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-wrap items-center gap-y-1.5 text-base font-medium text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-inner">
               <span>"Move shape</span>
-              <NumberSelect value={transDistX} onChange={setTransDistX} max={15} />
-              <span>sq.</span>
-              <select value={transDirX} onChange={e => setTransDirX(e.target.value)} className="mx-1 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm">
-                <option value="right">Right</option>
-                <option value="left">Left</option>
-              </select>
-              <span>and</span>
+              
+              {/* Y-Axis Config (Up/Down) moved to FIRST position */}
               <NumberSelect value={transDistY} onChange={setTransDistY} max={15} />
               <span>sq.</span>
-              <select value={transDirY} onChange={e => setTransDirY(e.target.value)} className="mx-1 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm">
+              <select value={transDirY} onChange={e => setTransDirY(e.target.value)} className="mx-1 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm cursor-pointer focus:ring-1">
                 <option value="up">Up</option>
                 <option value="down">Down</option>
+              </select>
+              
+              <span>and</span>
+              
+              {/* X-Axis Config (Left/Right) moved to SECOND position */}
+              <NumberSelect value={transDistX} onChange={setTransDistX} max={20} />
+              <span>sq.</span>
+              <select value={transDirX} onChange={e => setTransDirX(e.target.value)} className="mx-1 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm cursor-pointer focus:ring-1">
+                <option value="right">Right</option>
+                <option value="left">Left</option>
               </select>
               <span>."</span>
             </div>
@@ -1298,12 +1397,12 @@
           return (
             <div className="flex flex-wrap items-center gap-y-1.5 text-base font-medium text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
               <span>"Rotate shape</span>
-              <select value={rotAngle} onChange={e => setRotAngle(e.target.value)} className="mx-1.5 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm">
+              <select value={rotAngle} onChange={e => setRotAngle(e.target.value)} className="mx-1.5 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm cursor-pointer focus:ring-1">
                 <option value="90">1/4 Turn (90°)</option>
                 <option value="180">1/2 Turn (180°)</option>
                 <option value="270">3/4 Turn (270°)</option>
               </select>
-              <select value={rotDir} onChange={e => setRotDir(e.target.value)} className="mx-1.5 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm">
+              <select value={rotDir} onChange={e => setRotDir(e.target.value)} className="mx-1.5 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm cursor-pointer focus:ring-1">
                 <option value="cw">Clockwise</option>
                 <option value="ccw">Counter-CW</option>
               </select>
@@ -1318,7 +1417,7 @@
               <select 
                 value={selectedMirrorLineIdx} 
                 onChange={e => setSelectedMirrorLineIdx(parseInt(e.target.value))} 
-                className="mx-1.5 px-1 py-0.5 border rounded bg-white text-red-600 font-bold text-sm shadow-sm"
+                className="mx-1.5 px-1 py-0.5 border rounded bg-white text-red-600 font-bold text-sm shadow-sm cursor-pointer focus:ring-1"
               >
                 {level.mirrorLines && level.mirrorLines.map((m, i) => (
                   <option key={i} value={i}>
@@ -1568,11 +1667,11 @@
                   
                   {/* Overlay messages */}
                   {status !== 'playing' && !showTrophyCelebration && (
-                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
                       <h3 className={`text-2xl md:text-3xl font-black mb-1 md:mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
                         {status === 'won' ? 'Puzzle Solved! 🎉' : 'Oops! 💥'}
                       </h3>
-                      <p className="text-xs md:text-sm text-slate-700 font-medium mb-2 max-w-md">{message}</p>
+                      <p className="text-xs md:text-sm text-slate-700 font-medium mb-2 max-w-md px-4">{message}</p>
                       
                       {status === 'won' && (
                         <div className="bg-slate-50 border border-slate-200 p-2 md:p-3 rounded-lg mb-3 w-full max-w-sm flex flex-col gap-1 md:gap-2">
@@ -1603,6 +1702,11 @@
                         {status === 'won' && levelIdx < 5 && (
                           <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105">
                             Next Level
+                          </button>
+                        )}
+                        {status === 'crashed' && (
+                          <button onClick={undo} className="px-3.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-xs md:text-sm rounded-lg transition-colors">
+                            Undo Last Move
                           </button>
                         )}
                         <button onClick={restartLevel} className="px-3.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-xs md:text-sm rounded-lg transition-colors">
@@ -1737,9 +1841,10 @@
                 </div>
               </div>
               
-              <div className="text-[11px] md:text-xs text-slate-600 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 flex flex-col gap-0.5 mt-2 shrink-0 select-none">
-                <div><strong>Goal:</strong> {level.instructions}</div>
-                <div className="text-purple-900"><strong>Challenge:</strong> {level.challengeText}</div>
+              {/* ENLARGED GOAL AND CHALLENGE SECTION */}
+              <div className="text-sm md:text-base lg:text-lg text-slate-800 bg-blue-50/80 p-4 rounded-xl border-2 border-blue-200 flex flex-col gap-1.5 mt-3 shrink-0 select-none shadow-sm">
+                <div><strong className="text-blue-900">Goal:</strong> {level.instructions}</div>
+                <div className="text-purple-900"><strong className="text-purple-950">Challenge:</strong> {level.challengeText}</div>
               </div>
             </div>
 
@@ -1823,7 +1928,7 @@
                 {/* Explainer / Hint Banner */}
                 <div className="bg-yellow-50/70 border-l-2 border-yellow-400 p-2.5 text-[11px] text-yellow-900 rounded-r-lg">
                   <p className="font-bold mb-0.5">Ghost Preview Mode Active</p>
-                  <p>Configure parameters above or <span className="font-bold">drag the red handle on the grid</span> to test your translations before clicking Commit.</p>
+                  <p>Configure parameters above or <span className="font-bold">drag the red handle on the grid</span> or <span className="font-bold">use keyboard arrows</span> to test your translations before clicking Commit.</p>
                 </div>
 
                 {/* Primary Action Commit Dock */}
@@ -1845,7 +1950,7 @@
                       Undo Step
                     </button>
                     <button 
-                      onClick={restartLevel}
+                      onClick={rerollVariation}
                       className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
                       title="Load another randomized puzzle for this level"
                     >
