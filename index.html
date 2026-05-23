@@ -49,7 +49,7 @@
     const { useState, useEffect, useRef, useMemo } = React;
 
     // --- GOOGLE SHEETS INTEGRATION CONFIG ---
-    // PASTE YOUR NEW GOOGLE APPS SCRIPT WEB APP URL HERE:
+    // User configured Apps Script Endpoint
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxASjy1KnWewCGhNvy6N3h8luYtPunzd1gk5NYx8e7au_vmG6PuXsrnYJWCtL2gMRWJ/exec"; 
 
     // --- GAME GRID CONSTANTS ---
@@ -89,7 +89,7 @@
         return wall;
     };
 
-    // --- 30 UNIQUE PUZZLE VARIATIONS WITH DIVERSE STARTS & MIRROR LINES ---
+    // --- 30 UNIQUE PUZZLE VARIATIONS WITH SECURE GRID BOUNDS ---
     const LEVEL_VARIATIONS = [
       // --- LEVEL 1: BASIC TRANSLATION ---
       [
@@ -101,12 +101,12 @@
           parMoves: 2,
           variationLabel: "Var A",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 3, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 2 },
+          targetPivot: { x: 16, y: 3 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:9, y:5},{x:10, y:5}]
+          obstacles: buildWall('x', 10, 0, 4)
         },
         {
           id: 1,
@@ -118,10 +118,10 @@
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 16, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 11 },
+          targetPivot: { x: 3, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:9, y:0},{x:9, y:1},{x:9, y:2},{x:9, y:3},{x:9, y:4},{x:9, y:5},{x:9, y:6},{x:9, y:7},{x:9, y:8}]
+          obstacles: buildWall('x', 10, 10, 14)
         },
         {
           id: 1,
@@ -133,10 +133,10 @@
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
           startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 10, y: 1 },
+          targetPivot: { x: 10, y: 3 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:0, y:7},{x:1, y:7},{x:2, y:7},{x:3, y:7},{x:4, y:7},{x:5, y:7},{x:6, y:7},{x:14, y:7},{x:15, y:7},{x:16, y:7},{x:17, y:7},{x:18, y:7},{x:19, y:7}]
+          obstacles: [...buildWall('y', 7, 0, 7), ...buildWall('y', 7, 13, 19)]
         },
         {
           id: 1,
@@ -146,12 +146,12 @@
           parMoves: 2,
           variationLabel: "Var D",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 3, y: 1 },
+          startPivot: { x: 3, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 15, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
+          obstacles: [...buildWall('x', 9, 0, 5), ...buildWall('x', 9, 9, 14)]
         },
         {
           id: 1,
@@ -161,12 +161,12 @@
           parMoves: 2,
           variationLabel: "Var E",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 16, y: 2 },
+          startPivot: { x: 16, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 10 },
+          targetPivot: { x: 3, y: 10 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6}]
+          obstacles: buildWall('x', 10, 0, 7)
         }
       ],
 
@@ -186,10 +186,10 @@
           },
           startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 7 },
+          targetPivot: { x: 3, y: 7 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:9, y:0},{x:9, y:1},{x:9, y:2},{x:9, y:3},{x:9, y:4},{x:9, y:5},{x:9, y:6},{x:9, y:10},{x:9, y:11},{x:9, y:12},{x:9, y:13},{x:9, y:14}]
+          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
         },
         {
           id: 2,
@@ -205,10 +205,10 @@
           },
           startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 10, y: 3 }, 
+          targetPivot: { x: 10, y: 4 }, 
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:6, y:6},{x:7, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
+          obstacles: [...buildWall('y', 7, 0, 7), ...buildWall('y', 7, 12, 19)]
         },
         {
           id: 2,
@@ -222,12 +222,12 @@
             const t = history.filter(h => h.type === 'translate').length;
             return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 3, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 11 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
+          obstacles: buildWall('x', 10, 6, 14)
         },
         {
           id: 2,
@@ -241,12 +241,12 @@
             const t = history.filter(h => h.type === 'translate').length;
             return r === 1 && t <= 2;
           },
-          startPivot: { x: 16, y: 2 },
+          startPivot: { x: 16, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 11 },
+          targetPivot: { x: 3, y: 11 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8}]
+          obstacles: buildWall('x', 10, 0, 8)
         },
         {
           id: 2,
@@ -260,16 +260,16 @@
             const t = history.filter(h => h.type === 'translate').length;
             return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 11 },
+          startPivot: { x: 3, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 1 },
+          targetPivot: { x: 16, y: 4 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [{x:7, y:0},{x:7, y:1},{x:7, y:2},{x:7, y:3},{x:7, y:4},{x:7, y:5},{x:7, y:9},{x:7, y:10},{x:7, y:11},{x:7, y:12},{x:7, y:13},{x:7, y:14}]
+          obstacles: buildWall('x', 10, 0, 8)
         }
       ],
 
-      // --- LEVEL 3: MIRROR MAZE (Reflections across explicit lines) ---
+      // --- LEVEL 3: MIRROR MAZE (Reflections requiring massive leaps) ---
       [
         {
           id: 3,
@@ -285,7 +285,7 @@
           },
           startPivot: { x: 4, y: 6 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 6 },
+          targetPivot: { x: 14, y: 10 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }],
           obstacles: buildWall('x', 10, 0, 14)
@@ -304,14 +304,14 @@
           },
           startPivot: { x: 8, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 8, y: 3 },
+          targetPivot: { x: 12, y: 4 },
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'horizontal', pos: 7 }],
           obstacles: buildWall('y', 7, 0, 19)
         },
         {
           id: 3,
-          title: "Level 3 (Var C): High Divider Mirror (Right Start)",
+          title: "Level 3 (Var C): High Divider Mirror",
           instructions: "Fling the shape into the upper compartment using reflection mechanics.",
           challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
@@ -321,12 +321,12 @@
             const t = history.filter(h => h.type === 'translate').length;
             return f === 1 && t === 1;
           },
-          startPivot: { x: 16, y: 2 },
+          startPivot: { x: 15, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 4, y: 2 },
+          targetPivot: { x: 5, y: 10 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 8)
+          obstacles: buildWall('x', 10, 0, 14)
         },
         {
           id: 3,
@@ -340,12 +340,12 @@
             const t = history.filter(h => h.type === 'translate').length;
             return f === 1 && t === 1;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 4, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 12 },
+          targetPivot: { x: 10, y: 11 },
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'horizontal', pos: 7 }, { axis: 'vertical', pos: 10 }],
-          obstacles: buildWall('y', 7, 0, 5)
+          obstacles: buildWall('y', 7, 0, 19)
         },
         {
           id: 3,
@@ -359,12 +359,12 @@
             const t = history.filter(h => h.type === 'translate').length;
             return f === 1 && t === 1;
           },
-          startPivot: { x: 15, y: 2 },
+          startPivot: { x: 14, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 5, y: 2 },
+          targetPivot: { x: 4, y: 9 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 4)
+          obstacles: buildWall('x', 10, 0, 14)
         }
       ],
 
@@ -383,16 +383,16 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 4, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 11 },
+          targetPivot: { x: 16, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 6, 0, 8), ...buildWall('x', 12, 6, 14)]
+          obstacles: [...buildWall('x', 10, 0, 5), ...buildWall('x', 10, 9, 14)]
         },
         {
           id: 4,
-          title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
+          title: "Level 4 (Var B): Horizontal Slalom",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
@@ -403,12 +403,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 2, y: 12 },
+          startPivot: { x: 4, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 3 },
+          targetPivot: { x: 16, y: 5 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('y', 8, 0, 8), ...buildWall('y', 4, 12, 19)]
+          obstacles: [...buildWall('y', 8, 0, 8), ...buildWall('y', 8, 12, 19)]
         },
         {
           id: 4,
@@ -423,12 +423,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 1, y: 1 },
+          startPivot: { x: 4, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 13 },
+          targetPivot: { x: 15, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 6, 0, 4), ...buildWall('x', 13, 10, 14)]
+          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
         },
         {
           id: 4,
@@ -443,12 +443,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 16, y: 3 },
+          startPivot: { x: 15, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 11 },
+          targetPivot: { x: 4, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 8, 14)]
+          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
         },
         {
           id: 4,
@@ -463,12 +463,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 16, y: 7 },
+          startPivot: { x: 15, y: 10 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 7 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 5, 3, 7), ...buildWall('x', 14, 7, 11)]
+          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
         }
       ],
 
@@ -482,12 +482,12 @@
           parMoves: 5,
           variationLabel: "Var A",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 16, y: 12 },
+          startPivot: { x: 15, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 12 },
+          targetPivot: { x: 4, y: 11 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 8, 3, 11), ...buildWall('y', 3, 9, 12), ...buildWall('x', 12, 4, 11)]
+          obstacles: [...buildWall('x', 10, 0, 7), ...buildWall('y', 7, 12, 19)]
         },
         {
           id: 5,
@@ -497,12 +497,12 @@
           parMoves: 5,
           variationLabel: "Var B",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 16, y: 12 },
+          startPivot: { x: 15, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 2, y: 3 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 8, 4, 8), ...buildWall('x', 8, 12, 14), ...buildWall('x', 12, 0, 3), ...buildWall('x', 12, 7, 10)]
+          obstacles: [...buildWall('x', 10, 4, 10), ...buildWall('x', 14, 0, 6)]
         },
         {
           id: 5,
@@ -512,9 +512,9 @@
           parMoves: 5,
           variationLabel: "Var C",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 16, y: 2 },
+          startPivot: { x: 15, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 12 },
+          targetPivot: { x: 4, y: 11 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [...buildWall('x', 6, 0, 7), ...buildWall('x', 12, 7, 14)]
@@ -527,12 +527,12 @@
           parMoves: 5,
           variationLabel: "Var D",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 16, y: 12 },
+          startPivot: { x: 15, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 2 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('y', 4, 7, 13), ...buildWall('x', 10, 5, 10)]
+          obstacles: [...buildWall('y', 7, 7, 13), ...buildWall('x', 10, 0, 4)]
         },
         {
           id: 5,
@@ -542,97 +542,95 @@
           parMoves: 5,
           variationLabel: "Var E",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 16, y: 1 },
+          startPivot: { x: 15, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 3, y: 3 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('y', 4, 4, 16)
+          obstacles: buildWall('y', 7, 4, 16)
         }
       ],
 
       // --- BONUS LEVEL: GUARANTEED SOLVABLE (5 Variations) ---
-      // These variations require exactly >=1 of each move, open pathways allow reflections to clear walls!
       [
         {
           id: 6,
           title: "Bonus (Var A): The Great Wall",
           instructions: "Solve this legendary final puzzle. Reach the destination to unlock Custom Colors!",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 5 moves or less!",
-          parMoves: 5,
+          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          parMoves: 6,
           variationLabel: "Var A",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            return r >= 1 && f >= 1 && t >= 1 && history.length <= 5;
+            return r >= 1 && f >= 1 && t >= 1 && history.length <= 6;
           },
-          startPivot: { x: 3, y: 5 },
+          startPivot: { x: 4, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 5 },
+          targetPivot: { x: 15, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 14) // Blocks translation, forces reflection!
+          obstacles: buildWall('x', 10, 0, 14) 
         },
         {
           id: 6,
           title: "Bonus (Var B): The Ceiling",
           instructions: "Weave through the obstacles to reach the goal at the exact orientation.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 5 moves or less!",
-          parMoves: 5,
+          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          parMoves: 6,
           variationLabel: "Var B",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            return r >= 1 && f >= 1 && t >= 1 && history.length <= 5;
+            return r >= 1 && f >= 1 && t >= 1 && history.length <= 6;
           },
-          startPivot: { x: 10, y: 2 },
+          startPivot: { x: 15, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 10, y: 12 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('y', 7, 0, 19) // Blocks translation up, forces reflection!
+          obstacles: buildWall('y', 7, 0, 19)
         },
         {
           id: 6,
           title: "Bonus (Var C): The Vault",
           instructions: "Pass through alternating high and low walls to arrive at the top-right.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 5 moves or less!",
-          parMoves: 5,
+          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          parMoves: 6,
           variationLabel: "Var C",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            return r >= 1 && f >= 1 && t >= 1 && history.length <= 5;
+            return r >= 1 && f >= 1 && t >= 1 && history.length <= 6;
           },
-          startPivot: { x: 3, y: 7 },
+          startPivot: { x: 15, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 7 }, // Inside the box
+          targetPivot: { x: 4, y: 10 }, 
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
-            ...buildWall('x', 14, 5, 9), ...buildWall('x', 19, 5, 9), 
-            ...buildWall('y', 5, 14, 19), ...buildWall('y', 9, 14, 19)
-          ] // Enclosed box around target, forces reflection!
+            ...buildWall('x', 7, 5, 14), ...buildWall('x', 14, 0, 8), 
+          ] 
         },
         {
           id: 6,
           title: "Bonus (Var D): The Cross Guard",
           instructions: "Reach the target safely by choosing the correct sequence of flips and turns.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 5 moves or less!",
-          parMoves: 5,
+          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          parMoves: 6,
           variationLabel: "Var D",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            return r >= 1 && f >= 1 && t >= 1 && history.length <= 5;
+            return r >= 1 && f >= 1 && t >= 1 && history.length <= 6;
           },
-          startPivot: { x: 3, y: 2 },
+          startPivot: { x: 4, y: 8 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 12 },
+          targetPivot: { x: 15, y: 8 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
@@ -644,18 +642,18 @@
           id: 6,
           title: "Bonus (Var E): The Core",
           instructions: "Maneuver through the blocked maze to match the final flipped target.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 5 moves or less!",
-          parMoves: 5,
+          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          parMoves: 6,
           variationLabel: "Var E",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            return r >= 1 && f >= 1 && t >= 1 && history.length <= 5;
+            return r >= 1 && f >= 1 && t >= 1 && history.length <= 6;
           },
-          startPivot: { x: 2, y: 7 },
+          startPivot: { x: 15, y: 10 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 7 },
+          targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
@@ -734,7 +732,7 @@
 
       // Student Account Setup States
       const [studentName, setStudentName] = useState('');
-      const [difficulty, setDifficulty] = useState('medium'); // easy, medium, expert, narwhal
+      const [difficulty, setDifficulty] = useState('medium'); 
       const [gameStarted, setGameStarted] = useState(false);
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
@@ -745,23 +743,23 @@
       const [showContinueOffer, setShowContinueOffer] = useState(false);
 
       // Score Tracking States
-      const [sheetStatus, setSheetStatus] = useState('idle'); // idle, sending, success, error
+      const [sheetStatus, setSheetStatus] = useState('idle'); 
       
-      // Dynamic max time allocation based on difficulty selection
+      // Dynamic max time allocation
       const maxTimeLimit = useMemo(() => {
-        if (difficulty === 'easy') return 90; // 1:30 minutes
-        if (difficulty === 'expert') return 30; // 30 seconds
-        if (difficulty === 'narwhal') return 15; // 15 seconds
-        return 60; // default medium (1 minute)
+        if (difficulty === 'easy') return 90; 
+        if (difficulty === 'expert') return 30; 
+        if (difficulty === 'narwhal') return 15; 
+        return 60; 
       }, [difficulty]);
 
       const [secondsLeft, setSecondsLeft] = useState(120);
 
       const [levelIdx, setLevelIdx] = useState(0);
       const [variationIdx, setVariationIdx] = useState(0);
-      const [status, setStatus] = useState('playing'); // playing, won, crashed
+      const [status, setStatus] = useState('playing'); 
       const [message, setMessage] = useState('');
-      const [history, setHistory] = useState([]); // Array of { pivot, blocks, type }
+      const [history, setHistory] = useState([]); 
 
       const moveTally = useMemo(() => {
         return {
@@ -772,12 +770,8 @@
         };
       }, [history]);
 
-      // Current Level Obstacles (Allows for dynamic clearing)
+      // Current Level Obstacles
       const [currentObstacles, setCurrentObstacles] = useState([]);
-
-      // Secret Nodes & Bonuses
-      const [secretNode, setSecretNode] = useState(null);
-      const [bonusAlert, setBonusAlert] = useState(null);
 
       // Narwhal Mini-Game States
       const narwhalSpawnedThisLevel = useRef(false);
@@ -819,7 +813,7 @@
         return LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx]);
 
-      // Initialize lives whenever starting difficulty or game starts
+      // Initialize lives
       useEffect(() => {
         if (gameStarted) {
           setLives(difficulty === 'narwhal' ? 2 : 3);
@@ -835,22 +829,19 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSecondsLeft(maxTimeLimit); // Reset dynamic countdown timer
+        setSecondsLeft(maxTimeLimit); 
         setChallengeCompleted(false);
         setSheetStatus('idle');
-        setSelectedMirrorLineIdx(0); // Reset mirror line selector
-        setBonusAlert(null);
+        setSelectedMirrorLineIdx(0);
         setMathQuiz(null);
         setIsNarwhalActive(false);
         narwhalSpawnedThisLevel.current = false;
         resetCommandUI();
-
       }, [level, gameStarted, maxTimeLimit]);
 
       // Trigger Narwhal Random Spawn
       useEffect(() => {
         if (status === 'playing' && gameStarted && !narwhalSpawnedThisLevel.current && !mathQuiz) {
-            // Spawn between 5 and 20 seconds into the level
             const delay = Math.random() * 15000 + 5000; 
             const timer = setTimeout(() => {
                 narwhalSpawnedThisLevel.current = true;
@@ -858,7 +849,7 @@
                 narwhalRef.current = {
                     x: fromLeft ? -2 : GRID_W + 2,
                     y: Math.random() * (GRID_H - 4) + 2,
-                    vx: (fromLeft ? 1 : -1) * (0.15 + Math.random() * 0.1), // Speedy!
+                    vx: (fromLeft ? 1 : -1) * (0.15 + Math.random() * 0.1), 
                     vy: (Math.random() - 0.5) * 0.08,
                     active: true,
                     dir: fromLeft ? 1 : -1
@@ -875,7 +866,7 @@
         if (isNarwhalActive && !mathQuiz) {
            interval = setInterval(() => {
               setTick(t => t + 1);
-           }, 30); // ~33fps redraw
+           }, 30); 
         }
         return () => clearInterval(interval);
       }, [isNarwhalActive, mathQuiz]);
@@ -1028,7 +1019,7 @@
             else if (e.key === 'ArrowLeft') dx -= 1;
             else return;
 
-            e.preventDefault(); // Prevent page scroll
+            e.preventDefault(); 
 
             const newTargetX = pivot.x + dx;
             const newTargetY = pivot.y + dy;
@@ -1506,7 +1497,7 @@
         ctx.fill();
         ctx.stroke();
 
-        // 🦄 Draw Narwhal
+        // 🐋 Draw Narwhal
         if (isNarwhalActive && narwhalRef.current) {
            const nw = narwhalRef.current;
            nw.x += nw.vx;
@@ -1518,7 +1509,7 @@
            ctx.font = '40px Arial';
            ctx.textAlign = 'center';
            ctx.textBaseline = 'middle';
-           ctx.fillText('🦄', 0, 0);
+           ctx.fillText('🐋', 0, 0);
            ctx.restore();
 
            // Despawn if it leaves bounds completely
@@ -1632,7 +1623,7 @@
                       { key: 'expert', label: 'Expert', desc: '30 Sec Timer', color: 'border-red-500 text-red-700 bg-red-50', locked: false },
                       { 
                         key: 'narwhal', 
-                        label: '🦄 Narwhal Mode', 
+                        label: '🐋 Narwhal Mode', 
                         desc: '15 Sec | 2 Lives', 
                         color: 'border-fuchsia-500 text-fuchsia-700 bg-fuchsia-50', 
                         locked: !narwhalUnlocked 
@@ -1744,7 +1735,7 @@
                 📐 Transformational Geometry Arena
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Active Student: <span className="font-bold text-blue-600">{studentName}</span> | Difficulty: <span className={`font-bold uppercase ${difficulty === 'narwhal' ? 'text-fuchsia-600 animate-pulse' : difficulty === 'expert' ? 'text-red-600' : difficulty === 'medium' ? 'text-blue-600' : 'text-green-600'}`}>{difficulty === 'narwhal' ? "🦄 Magical Narwhal" : difficulty}</span>
+                Active Student: <span className="font-bold text-blue-600">{studentName}</span> | Difficulty: <span className={`font-bold uppercase ${difficulty === 'narwhal' ? 'text-fuchsia-600 animate-pulse' : difficulty === 'expert' ? 'text-red-600' : difficulty === 'medium' ? 'text-blue-600' : 'text-green-600'}`}>{difficulty === 'narwhal' ? "🐋 Magical Narwhal" : difficulty}</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-1">
@@ -1827,7 +1818,7 @@
                   {mathQuiz && (
                     <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
                       <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full">
-                         <h3 className="text-xl md:text-2xl font-black text-fuchsia-600 mb-2">🦄 Narwhal Caught!</h3>
+                         <h3 className="text-xl md:text-2xl font-black text-fuchsia-600 mb-2">🐋 Narwhal Caught!</h3>
                          <p className="text-slate-600 font-bold mb-4">Quick! Answer this to gain +1 Minute!</p>
                          
                          <div className="text-4xl md:text-5xl font-black text-slate-800 mb-6 bg-slate-100 py-4 rounded-xl border border-slate-200 shadow-inner">
@@ -1945,7 +1936,7 @@
                             </g>
                           </svg>
                           <div className="absolute top-0 right-0 bg-fuchsia-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full rotate-12 shadow animate-bounce">
-                            🦄 NARWHAL MASTER
+                            🐋 NARWHAL MASTER
                           </div>
                         </div>
                       ) : difficulty === 'expert' ? (
@@ -1994,7 +1985,7 @@
                         {difficulty === 'narwhal' ? `Simply outstanding, ${studentName}! You conquered the legendary 15-second limits!` : difficulty === 'expert' ? `Expert Mode Cleared! You unlocked a mystical new challenge on the Lobby start screen!` : `You conquered all 5 core levels, ${studentName}!`}
                       </p>
                       <p className="text-[10px] md:text-xs text-slate-300 max-w-sm mb-4">
-                        {difficulty === 'narwhal' ? "You have achieved perfect transformation fluency. The Great Lakes salute your genius!" : difficulty === 'expert' ? "Head back to the start screen to select the locked '🦄 Magical Narwhal' difficulty!" : "Ready to tackle the ultimate challenge to unlock custom figure coloring?"}
+                        {difficulty === 'narwhal' ? "You have achieved perfect transformation fluency. The Great Lakes salute your genius!" : difficulty === 'expert' ? "Head back to the start screen to select the locked '🐋 Magical Narwhal' difficulty!" : "Ready to tackle the ultimate challenge to unlock custom figure coloring?"}
                       </p>
                       <div className="flex gap-2">
                         {difficulty === 'expert' ? (
@@ -2002,7 +1993,7 @@
                             onClick={handleResetToLobby}
                             className="px-5 py-2.5 bg-gradient-to-r from-fuchsia-500 to-indigo-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
                           >
-                            🦄 Play Magical Narwhal Mode!
+                            🐋 Play Magical Narwhal Mode!
                           </button>
                         ) : (
                           <button 
