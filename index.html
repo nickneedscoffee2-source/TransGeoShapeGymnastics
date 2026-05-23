@@ -179,7 +179,7 @@
       }
     ];
 
-    // --- BASE 30 UNIQUE PUZZLE VARIATIONS ---
+    // --- BASE 30 UNIQUE PUZZLE VARIATIONS WITH SECURE GRID BOUNDS ---
     const BASE_LEVEL_VARIATIONS = [
       // --- LEVEL 1: BASIC TRANSLATION ---
       [
@@ -196,7 +196,7 @@
           targetPivot: { x: 16, y: 3 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 4)
+          obstacles: buildWall('x', 10, 0, 3) // Widened gap for diagonal traversal
         },
         {
           id: 1,
@@ -211,7 +211,7 @@
           targetPivot: { x: 3, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 10, 14)
+          obstacles: buildWall('x', 10, 11, 14) // Widened gap
         },
         {
           id: 1,
@@ -241,7 +241,8 @@
           targetPivot: { x: 15, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 9, 0, 5), ...buildWall('x', 9, 9, 14)]
+          // Massively widened middle gap so diagonal drag/movement doesn't corner-clip
+          obstacles: [...buildWall('x', 9, 0, 3), ...buildWall('x', 9, 11, 14)] 
         },
         {
           id: 1,
@@ -256,7 +257,7 @@
           targetPivot: { x: 3, y: 10 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 7)
+          obstacles: buildWall('x', 10, 0, 5) // Widened gap
         }
       ],
 
@@ -279,7 +280,8 @@
           targetPivot: { x: 3, y: 7 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
+          // Widened middle gap
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 2,
@@ -298,7 +300,8 @@
           targetPivot: { x: 10, y: 4 }, 
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('y', 7, 0, 7), ...buildWall('y', 7, 12, 19)]
+          // Widened gap
+          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)]
         },
         {
           id: 2,
@@ -336,7 +339,7 @@
           targetPivot: { x: 3, y: 11 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 8)
+          obstacles: buildWall('x', 10, 0, 6) // Widened gap
         },
         {
           id: 2,
@@ -355,7 +358,7 @@
           targetPivot: { x: 16, y: 4 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 8)
+          obstacles: buildWall('x', 10, 0, 6) // Widened gap
         }
       ],
 
@@ -378,7 +381,7 @@
           targetPivot: { x: 14, y: 10 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }],
-          obstacles: buildWall('x', 10, 0, 14)
+          obstacles: buildWall('x', 10, 0, 14) // Blocks translation, forces reflection
         },
         {
           id: 3,
@@ -478,7 +481,8 @@
           targetPivot: { x: 16, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 5), ...buildWall('x', 10, 9, 14)]
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -498,7 +502,8 @@
           targetPivot: { x: 16, y: 5 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('y', 8, 0, 8), ...buildWall('y', 8, 12, 19)]
+          // Widened gaps
+          obstacles: [...buildWall('y', 8, 0, 5), ...buildWall('y', 8, 14, 19)]
         },
         {
           id: 4,
@@ -518,7 +523,8 @@
           targetPivot: { x: 15, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -538,7 +544,8 @@
           targetPivot: { x: 4, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -558,7 +565,8 @@
           targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 4), ...buildWall('x', 10, 10, 14)]
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         }
       ],
 
@@ -723,9 +731,10 @@
           targetPivot: { x: 15, y: 4 }, // Shifted from y:8 to avoid clipping y:7 wall
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          // Widened gaps drastically
           obstacles: [
-            ...buildWall('x', 10, 0, 5), ...buildWall('x', 10, 9, 14),
-            ...buildWall('y', 7, 0, 8), ...buildWall('y', 7, 12, 19)
+            ...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14),
+            ...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)
           ] 
         },
         {
