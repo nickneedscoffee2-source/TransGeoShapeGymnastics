@@ -99,6 +99,56 @@
         return wall;
     };
 
+    // --- TUTORIAL PROGRESSION LEVELS ---
+    const TUTORIAL_LEVELS = [
+      null, // Index 0 is standard arena, ignored here
+      {
+        id: 'tut1',
+        title: "Training Step 1: Translation (Slide)",
+        instructions: "TRANSLATE (slide) the shape into the green target outline.",
+        challengeText: "Tip: Use your Arrow Keys on your keyboard to move the shape easily, then click Commit Movement!",
+        parMoves: 1,
+        variationLabel: "Tutorial",
+        checkChallenge: () => true,
+        startPivot: { x: 5, y: 5 },
+        startBlocks: [...INITIAL_BLOCKS],
+        targetPivot: { x: 10, y: 10 },
+        targetBlocks: [...INITIAL_BLOCKS],
+        mirrorLines: [],
+        obstacles: [] // Completely open board
+      },
+      {
+        id: 'tut2',
+        title: "Training Step 2: Rotation (Turn)",
+        instructions: "ROTATE (turn) the shape to exactly match the target's orientation.",
+        challengeText: "Tip: The 'Rotate' tab is active! Use the dropdowns to turn the shape 90° Clockwise.",
+        parMoves: 1,
+        variationLabel: "Tutorial",
+        checkChallenge: () => true,
+        startPivot: { x: 10, y: 7 },
+        startBlocks: [...INITIAL_BLOCKS],
+        targetPivot: { x: 10, y: 7 },
+        targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}], // 90 CW
+        mirrorLines: [],
+        obstacles: [] // Completely open board
+      },
+      {
+        id: 'tut3',
+        title: "Training Step 3: Reflection (Flip)",
+        instructions: "REFLECT (flip) the shape backwards across the red dotted mirror line.",
+        challengeText: "Tip: Select the 'Vertical Line X=10' mirror line from the Reflect menu, then hit Commit!",
+        parMoves: 1,
+        variationLabel: "Tutorial",
+        checkChallenge: () => true,
+        startPivot: { x: 5, y: 7 },
+        startBlocks: [...INITIAL_BLOCKS],
+        targetPivot: { x: 15, y: 7 },
+        targetBlocks: [...FLIP_X_BLOCKS], // Flipped over X
+        mirrorLines: [{ axis: 'vertical', pos: 10 }], // Render the mirror line visibly
+        obstacles: [] // Completely open board
+      }
+    ];
+
     // --- 30 UNIQUE PUZZLE VARIATIONS WITH SECURE GRID BOUNDS ---
     const LEVEL_VARIATIONS = [
       // --- LEVEL 1: BASIC TRANSLATION ---
@@ -402,7 +452,7 @@
         },
         {
           id: 4,
-          title: "Level 4 (Var B): Horizontal Slalom",
+          title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
@@ -579,7 +629,7 @@
           startPivot: { x: 4, y: 4 },
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 15, y: 10 },
-          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
+          targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: buildWall('x', 10, 0, 14) 
         },
@@ -640,8 +690,8 @@
           },
           startPivot: { x: 4, y: 8 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 15, y: 8 },
-          targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
+          targetPivot: { x: 15, y: 4 }, // Shifted from y:8 to avoid clipping y:7 wall
+          targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [
             ...buildWall('x', 10, 0, 5), ...buildWall('x', 10, 9, 14),
@@ -745,6 +795,7 @@
       const [difficulty, setDifficulty] = useState('medium'); 
       const [gameStarted, setGameStarted] = useState(false);
       const [showTutorial, setShowTutorial] = useState(false);
+      const [tutorialStep, setTutorialStep] = useState(0); 
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
       // Track Continues
@@ -826,8 +877,16 @@
 
       // Dynamically fetch current active configuration
       const level = useMemo(() => {
+        if (tutorialStep > 0) return TUTORIAL_LEVELS[tutorialStep];
         return LEVEL_VARIATIONS[levelIdx][variationIdx];
-      }, [levelIdx, variationIdx]);
+      }, [levelIdx, variationIdx, tutorialStep]);
+
+      // Tutorial Auto-Tabs
+      useEffect(() => {
+        if (tutorialStep === 1) setActiveTab('translate');
+        if (tutorialStep === 2) setActiveTab('rotate');
+        if (tutorialStep === 3) setActiveTab('reflect');
+      }, [tutorialStep]);
 
       function resetCommandUI() {
         setTransDistX(0);
@@ -842,7 +901,7 @@
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSecondsLeft(maxTimeLimit !== null ? maxTimeLimit : 0); // 0 just as a placeholder if infinite
+        setSecondsLeft(maxTimeLimit !== null ? maxTimeLimit : 0); 
         setChallengeCompleted(false);
         setSheetStatus('idle');
         setSelectedMirrorLineIdx(0);
@@ -852,25 +911,29 @@
         setHasContinued(false);
         resetCommandUI();
         
-        // Randomly place +10s Time Bonus within a few tiles of start
-        let bx, by, bAttempts = 0, bValid = false;
-        while (!bValid && bAttempts < 100) {
-          bx = level.startPivot.x + Math.floor(Math.random() * 9) - 4; // -4 to +4 range
-          by = level.startPivot.y + Math.floor(Math.random() * 9) - 4;
-          
-          if (bx >= 1 && bx < GRID_W - 1 && by >= 1 && by < GRID_H - 1) {
-              const isObstacle = level.obstacles.some(o => o.x === bx && o.y === by);
-              const isStart = bx === level.startPivot.x && by === level.startPivot.y;
-              if (!isObstacle && !isStart) bValid = true;
+        // Randomly place +10s Time Bonus within a few tiles of start (skip in tutorial)
+        if (tutorialStep === 0) {
+          let bx, by, bAttempts = 0, bValid = false;
+          while (!bValid && bAttempts < 100) {
+            bx = level.startPivot.x + Math.floor(Math.random() * 9) - 4; 
+            by = level.startPivot.y + Math.floor(Math.random() * 9) - 4;
+            
+            if (bx >= 1 && bx < GRID_W - 1 && by >= 1 && by < GRID_H - 1) {
+                const isObstacle = level.obstacles.some(o => o.x === bx && o.y === by);
+                const isStart = bx === level.startPivot.x && by === level.startPivot.y;
+                if (!isObstacle && !isStart) bValid = true;
+            }
+            bAttempts++;
           }
-          bAttempts++;
-        }
-        if (bValid) {
-          setTimeBonusNode({ x: bx, y: by, active: true });
+          if (bValid) {
+            setTimeBonusNode({ x: bx, y: by, active: true });
+          } else {
+            setTimeBonusNode(null);
+          }
         } else {
-          setTimeBonusNode(null);
+          setTimeBonusNode(null); // No bonuses in tutorial
         }
-      }, [level, maxTimeLimit]);
+      }, [level, maxTimeLimit, tutorialStep]);
 
       function restartLevel() {
         initLevelData();
@@ -998,16 +1061,18 @@
 
       // Automatically select a random variation on level index swap
       useEffect(() => {
-        if (!gameStarted) return;
+        if (!gameStarted || tutorialStep > 0) return;
         const randomVarIdx = Math.floor(Math.random() * 5);
         setVariationIdx(randomVarIdx);
-      }, [levelIdx, gameStarted]);
+      }, [levelIdx, gameStarted, tutorialStep]);
 
       function handleStartGame(e) {
         e.preventDefault();
         if (studentName.trim().length > 0) {
           if (difficulty === 'training') {
             setShowTutorial(true);
+          } else {
+            setTutorialStep(0);
           }
           setGameStarted(true);
         }
@@ -1201,6 +1266,7 @@
         setShowContinueOffer(false);
         setLevelIdx(0);
         setVariationIdx(0);
+        setTutorialStep(0);
       }
 
       function calculateScore(moveCount, finalSecondsLeft, isChallengeMet) {
@@ -1213,8 +1279,8 @@
       }
 
       async function logProgressToGoogleSheets(finalHistory, isChallengeMet) {
-        if (!GOOGLE_SCRIPT_URL) {
-          console.log("No Google Script App URL configured. Playing offline.");
+        if (!GOOGLE_SCRIPT_URL || tutorialStep > 0) {
+          // Do not log offline mode or tutorial levels to avoid spamming the sheet
           return;
         }
 
@@ -1307,6 +1373,15 @@
         const targetAbsCoords = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         if (checkWin(absPendingCoords, targetAbsCoords)) {
           
+          if (tutorialStep > 0) {
+              setStatus('won');
+              setChallengeCompleted(true);
+              if (tutorialStep === 1) setMessage("Excellent! You translated the shape perfectly.");
+              if (tutorialStep === 2) setMessage("Great job! You rotated the shape to match.");
+              if (tutorialStep === 3) setMessage("Fantastic! You reflected the shape. You are ready for the Arena!");
+              return;
+          }
+
           const isChallengeMet = level.checkChallenge(updatedHistory);
           if (!isChallengeMet) {
             setStatus('crashed');
@@ -1377,7 +1452,7 @@
       // --- RENDERING CANVAS ---
       useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !gameStarted) return;
+        if (!canvas || !gameStarted || showTutorial) return;
         const ctx = canvas.getContext('2d');
         
         const dpr = window.devicePixelRatio || 1;
@@ -1610,7 +1685,7 @@
            }
         }
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, tick, isNarwhalActive, timeBonusNode]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, tick, isNarwhalActive, timeBonusNode, showTutorial]);
 
       function renderCommandSentence() {
         if (activeTab === 'translate') {
@@ -1773,7 +1848,10 @@
                     <p><strong>🐋 The Narwhal:</strong> Keep an eye out for a speedy Narwhal crossing your screen! Click it quickly to earn massive bonus time in standard modes!</p>
                 </div>
                 <button 
-                  onClick={() => setShowTutorial(false)} 
+                  onClick={() => {
+                      setShowTutorial(false);
+                      setTutorialStep(1); // Triggers load of first tutorial!
+                  }} 
                   className="mt-4 w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition-transform active:scale-95"
                 >
                   Start Training!
@@ -1826,28 +1904,34 @@
                 📐 Transformational Geometry Arena
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Active Student: <span className="font-bold text-blue-600">{studentName}</span> | Difficulty: <span className={`font-bold uppercase ${difficulty === 'narwhal' ? 'text-fuchsia-600 animate-pulse' : difficulty === 'expert' ? 'text-red-600' : difficulty === 'medium' ? 'text-blue-600' : 'text-green-600'}`}>{difficulty === 'narwhal' ? "🐋 Magical Narwhal" : difficulty}</span>
+                Active Student: <span className="font-bold text-blue-600">{studentName}</span> | Difficulty: <span className={`font-bold uppercase ${difficulty === 'narwhal' ? 'text-fuchsia-600 animate-pulse' : difficulty === 'expert' ? 'text-red-600' : difficulty === 'training' ? 'text-green-600' : 'text-blue-600'}`}>{difficulty === 'narwhal' ? "🐋 Magical Narwhal" : difficulty}</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-1">
-              {LEVEL_VARIATIONS.map((_, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => {
-                    setLevelIdx(i);
-                    setShowTrophyCelebration(false);
-                  }}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                    levelIdx === i 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : i === 5 
-                        ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
-                        : 'bg-white text-slate-600 hover:bg-gray-50 border'
-                  }`}
-                >
-                  {i === 5 ? '⭐ Bonus' : `Lvl ${i + 1}`}
-                </button>
-              ))}
+              {tutorialStep > 0 ? (
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-md shadow-sm">
+                    Training Course: Step {tutorialStep}/3
+                  </span>
+              ) : (
+                  LEVEL_VARIATIONS.map((_, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => {
+                        setLevelIdx(i);
+                        setShowTrophyCelebration(false);
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
+                        levelIdx === i 
+                          ? 'bg-blue-600 text-white shadow-md' 
+                          : i === 5 
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                            : 'bg-white text-slate-600 hover:bg-gray-50 border'
+                      }`}
+                    >
+                      {i === 5 ? '⭐ Bonus' : `Lvl ${i + 1}`}
+                    </button>
+                  ))
+              )}
             </div>
           </div>
 
@@ -1961,7 +2045,7 @@
                       </h3>
                       <p className="text-xs md:text-sm text-slate-700 font-medium mb-2 max-w-md px-4">{message}</p>
                       
-                      {status === 'won' && (
+                      {status === 'won' && tutorialStep === 0 && (
                         <div className="bg-slate-50 border border-slate-200 p-2 md:p-3 rounded-lg mb-3 w-full max-w-sm flex flex-col gap-1 md:gap-2">
                           <div>
                             <p className="font-bold text-[10px] md:text-xs text-slate-800 mb-0.5">Challenge Check:</p>
@@ -1987,9 +2071,22 @@
                       )}
 
                       <div className="flex flex-wrap justify-center gap-1.5">
-                        {status === 'won' && levelIdx < 5 && (
-                          <button onClick={() => setLevelIdx(levelIdx + 1)} className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105">
-                            Next Level
+                        {status === 'won' && (
+                          <button onClick={() => {
+                              if (tutorialStep > 0) {
+                                if (tutorialStep === 3) {
+                                  setTutorialStep(0);
+                                  setLevelIdx(0);
+                                } else {
+                                  setTutorialStep(tutorialStep + 1);
+                                }
+                              } else {
+                                setLevelIdx(levelIdx + 1);
+                              }
+                            }} 
+                            className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105"
+                          >
+                            {tutorialStep > 0 ? (tutorialStep === 3 ? "Start Arena!" : "Next Tutorial") : "Next Level"}
                           </button>
                         )}
                         {status === 'crashed' && (
@@ -2138,16 +2235,21 @@
               
               {/* Main Action Tabs */}
               <div className="flex bg-slate-100 border-b shrink-0">
-                {['translate', 'rotate', 'reflect'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-3 font-bold text-xs uppercase tracking-wider transition-colors
-                      ${activeTab === tab ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-slate-500 hover:bg-slate-200 border-t-2 border-transparent'}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+                {['translate', 'rotate', 'reflect'].map((tab, idx) => {
+                  const isLocked = tutorialStep > 0 && tutorialStep !== (idx + 1);
+                  return (
+                    <button
+                      key={tab}
+                      disabled={isLocked}
+                      onClick={() => !isLocked && setActiveTab(tab)}
+                      className={`flex-1 py-3 font-bold text-xs uppercase tracking-wider transition-colors
+                        ${activeTab === tab ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-slate-500 hover:bg-slate-200 border-t-2 border-transparent'}
+                        ${isLocked ? 'opacity-40 cursor-not-allowed bg-slate-200' : ''}`}
+                    >
+                      {tab} {isLocked && '🔒'}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Interactive Console HUD */}
@@ -2235,8 +2337,9 @@
                       Undo Step
                     </button>
                     <button 
-                      onClick={restartLevel}
-                      className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
+                      onClick={rerollVariation}
+                      disabled={tutorialStep > 0}
+                      className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
                       title="Load another randomized puzzle for this level"
                     >
                       🔄 Reroll Puzzle
