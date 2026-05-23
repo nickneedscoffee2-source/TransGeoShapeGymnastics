@@ -40,13 +40,19 @@
     }
     
     @keyframes ping-slow {
-      75%, 100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
+      75%, 100% { transform: scale(1.5); opacity: 0; }
     }
     .animate-ping-slow {
       animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    
+    /* Neon glow effect for unignorable challenge text */
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.5); transform: scale(1); }
+      50% { box-shadow: 0 0 25px rgba(168, 85, 247, 1); border-color: rgba(168, 85, 247, 1); transform: scale(1.02); }
+    }
+    .animate-glow-pulse {
+      animation: glow-pulse 1.8s ease-in-out infinite;
     }
   </style>
 </head>
@@ -106,7 +112,7 @@
         id: 'tut1',
         title: "Training Step 1: Translation (Slide)",
         instructions: "TRANSLATE (slide) the shape into the green target outline.",
-        challengeText: "Tip: Use your Arrow Keys on your keyboard to move the shape easily, then click Commit Movement!",
+        challengeText: "Use exactly 1 Translation move!",
         parMoves: 1,
         variationLabel: "Tutorial",
         checkChallenge: () => true,
@@ -115,13 +121,14 @@
         targetPivot: { x: 10, y: 10 },
         targetBlocks: [...INITIAL_BLOCKS],
         mirrorLines: [],
-        obstacles: [] // Completely open board
+        obstacles: [],
+        allowedMoves: { translate: 1, rotate: 0, reflect: 0 }
       },
       {
         id: 'tut2',
         title: "Training Step 2: Rotation (Turn)",
         instructions: "ROTATE (turn) the shape to exactly match the target's orientation.",
-        challengeText: "Tip: The 'Rotate' tab is active! Use the dropdowns to turn the shape 90° Clockwise.",
+        challengeText: "Turn the shape 90° Clockwise using exactly 1 Rotation!",
         parMoves: 1,
         variationLabel: "Tutorial",
         checkChallenge: () => true,
@@ -130,13 +137,14 @@
         targetPivot: { x: 10, y: 7 },
         targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}], // 90 CW
         mirrorLines: [],
-        obstacles: [] // Completely open board
+        obstacles: [],
+        allowedMoves: { translate: 0, rotate: 1, reflect: 0 }
       },
       {
         id: 'tut3',
         title: "Training Step 3: Reflection (Flip)",
         instructions: "REFLECT (flip) the shape backwards across the red dotted mirror line.",
-        challengeText: "Tip: Select the 'Vertical Line X=10' mirror line from the Reflect menu, then hit Commit!",
+        challengeText: "Select the 'Vertical Line X=10' mirror and use 1 Reflection move!",
         parMoves: 1,
         variationLabel: "Tutorial",
         checkChallenge: () => true,
@@ -145,19 +153,20 @@
         targetPivot: { x: 15, y: 7 },
         targetBlocks: [...FLIP_X_BLOCKS], // Flipped over X
         mirrorLines: [{ axis: 'vertical', pos: 10 }], // Render the mirror line visibly
-        obstacles: [] // Completely open board
+        obstacles: [],
+        allowedMoves: { translate: 0, rotate: 0, reflect: 1 }
       }
     ];
 
-    // --- 30 UNIQUE PUZZLE VARIATIONS WITH SECURE GRID BOUNDS ---
-    const LEVEL_VARIATIONS = [
+    // --- BASE 30 UNIQUE PUZZLE VARIATIONS ---
+    const BASE_LEVEL_VARIATIONS = [
       // --- LEVEL 1: BASIC TRANSLATION ---
       [
         {
           id: 1,
           title: "Level 1 (Var A): Left to Right",
           instructions: "Translate the shape around the central wall to fit into the green target outline.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
+          challengeText: "Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var A",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -172,7 +181,7 @@
           id: 1,
           title: "Level 1 (Var B): Right to Left",
           instructions: "Navigate through the lower corridor to arrive at the left destination.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
+          challengeText: "Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var B",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -187,7 +196,7 @@
           id: 1,
           title: "Level 1 (Var C): Top to Bottom",
           instructions: "Move through the horizontal division gap to align with the target.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
+          challengeText: "Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var C",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -202,7 +211,7 @@
           id: 1,
           title: "Level 1 (Var D): Bottom to Top Diagonal",
           instructions: "Navigate the shape up and across the central slot.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
+          challengeText: "Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var D",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -217,7 +226,7 @@
           id: 1,
           title: "Level 1 (Var E): The Right Wall",
           instructions: "Start from the bottom right and bypass the pillar to reach the top left.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
+          challengeText: "Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var E",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -236,7 +245,7 @@
           id: 2,
           title: "Level 2 (Var A): Right Gap Rotation",
           instructions: "Rotate the shape to pass safely through the narrow vertical gap.",
-          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var A",
           checkChallenge: (history) => {
@@ -255,7 +264,7 @@
           id: 2,
           title: "Level 2 (Var B): Top Horizontal Slot",
           instructions: "Rotate 180 degrees to navigate the horizontal tunnel.",
-          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var B",
           checkChallenge: (history) => {
@@ -274,7 +283,7 @@
           id: 2,
           title: "Level 2 (Var C): Bottom Pass Tunnel",
           instructions: "Maneuver and rotate the L-shape to make it slide through the floor opening.",
-          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var C",
           checkChallenge: (history) => {
@@ -293,7 +302,7 @@
           id: 2,
           title: "Level 2 (Var D): The Split Chimney (Right Start)",
           instructions: "Position and rotate the piece vertically to pass through the high gate.",
-          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var D",
           checkChallenge: (history) => {
@@ -312,7 +321,7 @@
           id: 2,
           title: "Level 2 (Var E): Labyrinth Top Gateway",
           instructions: "Perform a perfect turn inside the central chamber to slip into the bottom quadrant.",
-          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var E",
           checkChallenge: (history) => {
@@ -335,7 +344,7 @@
           id: 3,
           title: "Level 3 (Var A): The Vertical Mirror",
           instructions: "Reflect the shape exactly across the Red Dotted Mirror Line to bypass the solid wall.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
+          challengeText: "Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
           variationLabel: "Var A",
           checkChallenge: (history) => {
@@ -354,7 +363,7 @@
           id: 3,
           title: "Level 3 (Var B): The Horizontal Flip",
           instructions: "Use the Horizontal Mirror Line to jump your shape into the bottom room.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
+          challengeText: "Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
           variationLabel: "Var B",
           checkChallenge: (history) => {
@@ -373,7 +382,7 @@
           id: 3,
           title: "Level 3 (Var C): High Divider Mirror",
           instructions: "Fling the shape into the upper compartment using reflection mechanics.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
+          challengeText: "Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
           variationLabel: "Var C",
           checkChallenge: (history) => {
@@ -392,7 +401,7 @@
           id: 3,
           title: "Level 3 (Var D): Dual Post Mirrors",
           instructions: "Align the shape across the central posts by selecting the correct mirror line.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
+          challengeText: "Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
           variationLabel: "Var D",
           checkChallenge: (history) => {
@@ -411,7 +420,7 @@
           id: 3,
           title: "Level 3 (Var E): Cross Grid Flip",
           instructions: "Perform a flip of the shape to match the target nested across the map.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to win!",
+          challengeText: "Use exactly 1 Reflection and 1 Translation to win!",
           parMoves: 2,
           variationLabel: "Var E",
           checkChallenge: (history) => {
@@ -434,7 +443,7 @@
           id: 4,
           title: "Level 4 (Var A): Zigzag Pillars",
           instructions: "Combine all three transformation rules to weave past the central pillars.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
+          challengeText: "Solve using EXACTLY 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var A",
           checkChallenge: (history) => {
@@ -452,9 +461,9 @@
         },
         {
           id: 4,
-          title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
+          title: "Level 4 (Var B): Horizontal Slalom",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
+          challengeText: "Solve using EXACTLY 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var B",
           checkChallenge: (history) => {
@@ -474,7 +483,7 @@
           id: 4,
           title: "Level 4 (Var C): Checkerboard Maze",
           instructions: "Pass diagonal block walls requiring precise rotation and a single flip.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
+          challengeText: "Solve using EXACTLY 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var C",
           checkChallenge: (history) => {
@@ -494,7 +503,7 @@
           id: 4,
           title: "Level 4 (Var D): Split Center Corridors",
           instructions: "Use all three transformation classes to weave through the center opening.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
+          challengeText: "Solve using EXACTLY 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var D",
           checkChallenge: (history) => {
@@ -514,7 +523,7 @@
           id: 4,
           title: "Level 4 (Var E): S-Curve Siphon",
           instructions: "Navigate through the double bend layout to reach the goal area.",
-          challengeText: "Triple Crown Challenge: Solve this puzzle using exactly 1 Translate, 1 Rotate, and 1 Reflect!",
+          challengeText: "Solve using EXACTLY 1 Translate, 1 Rotate, and 1 Reflect!",
           parMoves: 3,
           variationLabel: "Var E",
           checkChallenge: (history) => {
@@ -538,7 +547,7 @@
           id: 5,
           title: "Level 5 (Var A): Narrow Spiral Corridors",
           instructions: "Maneuver carefully inside the tight corridor to align with the target.",
-          challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          challengeText: "Complete the level in 5 moves or fewer!",
           parMoves: 5,
           variationLabel: "Var A",
           checkChallenge: (history) => history.length <= 5,
@@ -553,7 +562,7 @@
           id: 5,
           title: "Level 5 (Var B): Dual-Chamber Maze",
           instructions: "Navigate through the tight gateway dividing the upper and lower grids.",
-          challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          challengeText: "Complete the level in 5 moves or fewer!",
           parMoves: 5,
           variationLabel: "Var B",
           checkChallenge: (history) => history.length <= 5,
@@ -568,7 +577,7 @@
           id: 5,
           title: "Level 5 (Var C): Narrow Central Grid",
           instructions: "Guide the shape safely through a series of vertical gates.",
-          challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          challengeText: "Complete the level in 5 moves or fewer!",
           parMoves: 5,
           variationLabel: "Var C",
           checkChallenge: (history) => history.length <= 5,
@@ -583,7 +592,7 @@
           id: 5,
           title: "Level 5 (Var D): The Forked Gateway",
           instructions: "Navigate through the tight upper tunnel, matching target orientations.",
-          challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          challengeText: "Complete the level in 5 moves or fewer!",
           parMoves: 5,
           variationLabel: "Var D",
           checkChallenge: (history) => history.length <= 5,
@@ -598,7 +607,7 @@
           id: 5,
           title: "Level 5 (Var E): Inner Pipe Bypass",
           instructions: "Slide the block through a long single-width horizontal pipeline.",
-          challengeText: "Master Optimizer Challenge: Complete the level in 5 moves or fewer!",
+          challengeText: "Complete the level in 5 moves or fewer!",
           parMoves: 5,
           variationLabel: "Var E",
           checkChallenge: (history) => history.length <= 5,
@@ -617,7 +626,7 @@
           id: 6,
           title: "Bonus (Var A): The Great Wall",
           instructions: "Solve this legendary final puzzle. Reach the destination to unlock Custom Colors!",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          challengeText: "Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
           parMoves: 6,
           variationLabel: "Var A",
           checkChallenge: (history) => {
@@ -637,7 +646,7 @@
           id: 6,
           title: "Bonus (Var B): The Ceiling",
           instructions: "Weave through the obstacles to reach the goal at the exact orientation.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          challengeText: "Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
           parMoves: 6,
           variationLabel: "Var B",
           checkChallenge: (history) => {
@@ -657,7 +666,7 @@
           id: 6,
           title: "Bonus (Var C): The Vault",
           instructions: "Pass through alternating high and low walls to arrive at the top-right.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          challengeText: "Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
           parMoves: 6,
           variationLabel: "Var C",
           checkChallenge: (history) => {
@@ -679,7 +688,7 @@
           id: 6,
           title: "Bonus (Var D): The Cross Guard",
           instructions: "Reach the target safely by choosing the correct sequence of flips and turns.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          challengeText: "Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
           parMoves: 6,
           variationLabel: "Var D",
           checkChallenge: (history) => {
@@ -702,7 +711,7 @@
           id: 6,
           title: "Bonus (Var E): The Core",
           instructions: "Maneuver through the blocked maze to match the final flipped target.",
-          challengeText: "Bonus Challenge: Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
+          challengeText: "Reach the target using AT LEAST ONE of each transformation in 6 moves or less!",
           parMoves: 6,
           variationLabel: "Var E",
           checkChallenge: (history) => {
@@ -723,6 +732,20 @@
         }
       ]
     ];
+
+    // Combine Base Levels with explicit move limits for robust validation & Tab Locking
+    const LEVEL_LIMITS = [
+      { translate: 2, rotate: 0, reflect: 0 },
+      { translate: 2, rotate: 1, reflect: 0 },
+      { translate: 1, rotate: 0, reflect: 1 },
+      { translate: 1, rotate: 1, reflect: 1 },
+      { translate: 5, rotate: 5, reflect: 5 }, // 5 overall
+      { translate: 6, rotate: 6, reflect: 6 }  // 6 overall
+    ];
+
+    const BOUND_LEVEL_VARIATIONS = BASE_LEVEL_VARIATIONS.map((group, idx) => 
+        group.map(variation => ({...variation, allowedMoves: LEVEL_LIMITS[idx]}))
+    );
 
     const COLOR_PRESETS = [
       { name: 'Royal Blue', fill: 'rgba(59, 130, 246, 0.8)', border: '#1d4ed8' },
@@ -878,15 +901,33 @@
       // Dynamically fetch current active configuration
       const level = useMemo(() => {
         if (tutorialStep > 0) return TUTORIAL_LEVELS[tutorialStep];
-        return LEVEL_VARIATIONS[levelIdx][variationIdx];
+        return BOUND_LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx, tutorialStep]);
 
-      // Tutorial Auto-Tabs
+      // Auto-Tab Locking Mechanics
       useEffect(() => {
         if (tutorialStep === 1) setActiveTab('translate');
         if (tutorialStep === 2) setActiveTab('rotate');
         if (tutorialStep === 3) setActiveTab('reflect');
       }, [tutorialStep]);
+
+      // Ensure we switch to a valid tab if the current one is exhausted
+      useEffect(() => {
+        if (!level.allowedMoves) return;
+        const currentLimit = level.allowedMoves[activeTab];
+        const currentUsed = moveTally[activeTab.charAt(0)];
+        
+        if (currentUsed >= currentLimit) {
+            const tabs = ['translate', 'rotate', 'reflect'];
+            const nextTab = tabs.find(t => {
+                 const l = level.allowedMoves ? level.allowedMoves[t] : 99;
+                 const u = moveTally[t.charAt(0)];
+                 const tutLocked = tutorialStep > 0 && tutorialStep !== tabs.indexOf(t) + 1;
+                 return u < l && !tutLocked;
+            });
+            if (nextTab) setActiveTab(nextTab);
+        }
+      }, [moveTally, activeTab, level, tutorialStep]);
 
       function resetCommandUI() {
         setTransDistX(0);
@@ -934,10 +975,6 @@
           setTimeBonusNode(null); // No bonuses in tutorial
         }
       }, [level, maxTimeLimit, tutorialStep]);
-
-      function restartLevel() {
-        initLevelData();
-      }
 
       // Handle Level or Variation load
       useEffect(() => {
@@ -1124,13 +1161,52 @@
         return { pivot: nextPivot, blocks: nextBlocks };
       }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, level.mirrorLines, selectedMirrorLineIdx]);
 
-      // Universal Keyboard Listeners for All Tabs
+      function toggleTabs() {
+        const tabs = ['translate', 'rotate', 'reflect'];
+        const availableTabs = tabs.filter(t => {
+            const limit = level.allowedMoves ? level.allowedMoves[t] : 99;
+            const used = moveTally[t.charAt(0)];
+            const tutLocked = tutorialStep > 0 && tutorialStep !== tabs.indexOf(t) + 1;
+            return used < limit && !tutLocked;
+        });
+        
+        if (availableTabs.length > 0) {
+            const currIdx = availableTabs.indexOf(activeTab);
+            const nextIdx = currIdx === -1 ? 0 : (currIdx + 1) % availableTabs.length;
+            setActiveTab(availableTabs[nextIdx]);
+        }
+      }
+
+      // Re-bindable refs for the keyboard listener so it always points to the latest scope variables
+      const commitMovementRef = useRef(null);
+      const toggleTabsRef = useRef(null);
+
+      useEffect(() => {
+          commitMovementRef.current = commitMovement;
+          toggleTabsRef.current = toggleTabs;
+      });
+
+      // --- UNIVERSAL KEYBOARD CONTROLS ---
       useEffect(() => {
         function handleKeyDown(e) {
           if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+          // Global Enter to Commit
+          if (e.key === 'Enter') {
+              e.preventDefault();
+              if (commitMovementRef.current) commitMovementRef.current();
+              return;
+          }
+
+          // Global Left Shift to toggle Tabs
+          if (e.code === 'ShiftLeft' || (e.key === 'Shift' && e.location === 1)) {
+              e.preventDefault();
+              if (toggleTabsRef.current) toggleTabsRef.current();
+              return;
+          }
 
           if (activeTab === 'translate') {
             let dx = (transDirX === 'right' ? 1 : -1) * transDistX;
@@ -1280,8 +1356,7 @@
 
       async function logProgressToGoogleSheets(finalHistory, isChallengeMet) {
         if (!GOOGLE_SCRIPT_URL || tutorialStep > 0) {
-          // Do not log offline mode or tutorial levels to avoid spamming the sheet
-          return;
+          return; // Ignore
         }
 
         setSheetStatus('sending');
@@ -1421,6 +1496,10 @@
         setMessage('');
         setChallengeCompleted(false);
         setSheetStatus('idle');
+      }
+
+      function restartLevel() {
+        initLevelData();
       }
 
       // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
@@ -1605,7 +1684,7 @@
           ctx.arc(ghostPivotCanvas.cx, ghostPivotCanvas.cy, 6, 0, Math.PI * 2);
           ctx.fill();
 
-          // --- GHOST AWARENESS LABELS (Draw Transformation Vector Details) ---
+          // --- GHOST AWARENESS LABELS ---
           ctx.fillStyle = '#1e3a8a';
           ctx.font = 'bold 16px sans-serif';
           ctx.textAlign = 'center';
@@ -1850,7 +1929,7 @@
                 <button 
                   onClick={() => {
                       setShowTutorial(false);
-                      setTutorialStep(1); // Triggers load of first tutorial!
+                      setTutorialStep(1); 
                   }} 
                   className="mt-4 w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition-transform active:scale-95"
                 >
@@ -2223,10 +2302,16 @@
                 </div>
               </div>
               
-              {/* ENLARGED GOAL AND CHALLENGE SECTION */}
-              <div className="text-sm md:text-base lg:text-lg text-slate-800 bg-blue-50/80 p-4 rounded-xl border-2 border-blue-200 flex flex-col gap-1.5 mt-3 shrink-0 select-none shadow-sm">
-                <div><strong className="text-blue-900">Goal:</strong> {level.instructions}</div>
-                <div className="text-purple-900"><strong className="text-purple-950">Challenge:</strong> {level.challengeText}</div>
+              {/* ENLARGED GLOWING GOAL AND CHALLENGE SECTION */}
+              <div className="text-sm md:text-base lg:text-lg text-slate-800 bg-blue-50/80 p-4 rounded-xl border-2 border-blue-200 flex flex-col gap-1 mt-3 shrink-0 select-none shadow-sm relative overflow-hidden">
+                <div className="mb-2"><strong className="text-blue-900">Goal:</strong> {level.instructions}</div>
+                <div className="p-3 animate-glow-pulse border border-purple-400 bg-purple-100 rounded-lg text-center relative z-10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    <strong className="text-purple-800 text-lg md:text-xl block mb-1">⚡ CHALLENGE ⚡</strong> 
+                    <span className="text-purple-950 text-base md:text-lg font-extrabold drop-shadow-sm">{level.challengeText}</span>
+                    <div className="mt-2 text-[11px] md:text-xs font-bold text-purple-700 bg-purple-200 inline-block px-3 py-1 rounded shadow-sm border border-purple-300">
+                        Keyboard Shortcut: Press [ENTER] to Commit | [Left SHIFT] to toggle menus
+                    </div>
+                </div>
               </div>
             </div>
 
@@ -2236,7 +2321,12 @@
               {/* Main Action Tabs */}
               <div className="flex bg-slate-100 border-b shrink-0">
                 {['translate', 'rotate', 'reflect'].map((tab, idx) => {
-                  const isLocked = tutorialStep > 0 && tutorialStep !== (idx + 1);
+                  const usedMoves = moveTally[tab.charAt(0)];
+                  const moveLimit = level.allowedMoves ? level.allowedMoves[tab] : 99;
+                  const isExhausted = usedMoves >= moveLimit;
+                  const isTutLocked = tutorialStep > 0 && tutorialStep !== (idx + 1);
+                  const isLocked = isExhausted || isTutLocked;
+
                   return (
                     <button
                       key={tab}
@@ -2246,7 +2336,7 @@
                         ${activeTab === tab ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-slate-500 hover:bg-slate-200 border-t-2 border-transparent'}
                         ${isLocked ? 'opacity-40 cursor-not-allowed bg-slate-200' : ''}`}
                     >
-                      {tab} {isLocked && '🔒'}
+                      {tab} {isTutLocked ? '🔒' : isExhausted ? '🚫' : ''}
                     </button>
                   );
                 })}
@@ -2270,15 +2360,15 @@
                   <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
                     <div className="bg-white px-1 py-1 rounded border">
                       <span className="block text-[10px] font-sans font-semibold text-slate-400">Translate</span>
-                      <span className="text-sm font-bold text-blue-600">{moveTally.t}</span>
+                      <span className="text-sm font-bold text-blue-600">{moveTally.t} {level.allowedMoves && `/${level.allowedMoves.translate}`}</span>
                     </div>
                     <div className="bg-white px-1 py-1 rounded border">
                       <span className="block text-[10px] font-sans font-semibold text-slate-400">Rotate</span>
-                      <span className="text-sm font-bold text-purple-600">{moveTally.r}</span>
+                      <span className="text-sm font-bold text-purple-600">{moveTally.r} {level.allowedMoves && `/${level.allowedMoves.rotate}`}</span>
                     </div>
                     <div className="bg-white px-1 py-1 rounded border">
                       <span className="block text-[10px] font-sans font-semibold text-slate-400">Reflect</span>
-                      <span className="text-sm font-bold text-pink-600">{moveTally.f}</span>
+                      <span className="text-sm font-bold text-pink-600">{moveTally.f} {level.allowedMoves && `/${level.allowedMoves.reflect}`}</span>
                     </div>
                   </div>
                 </div>
