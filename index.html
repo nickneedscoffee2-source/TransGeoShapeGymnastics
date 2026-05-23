@@ -66,15 +66,15 @@
       { x: 0.5, y: 2.5 },
     ];
 
-    // --- 30 UNIQUE PUZZLE VARIATIONS (5 per level) ---
+    // --- 30 UNIQUE PUZZLE VARIATIONS WITH DIVERSE STARTS & MIRROR LINES ---
     const LEVEL_VARIATIONS = [
-      // --- LEVEL 1: BASIC TRANSLATION (5 Variations) ---
+      // --- LEVEL 1: BASIC TRANSLATION ---
       [
         {
           id: 1,
-          title: "Level 1 (Var A): Center Blockade",
+          title: "Level 1 (Var A): Left to Right",
           instructions: "Translate the shape around the central wall to fit into the green target outline.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var A",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
@@ -82,270 +82,275 @@
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 16, y: 2 },
           targetBlocks: [...INITIAL_BLOCKS],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:9, y:5},{x:10, y:5}]
         },
         {
           id: 1,
-          title: "Level 1 (Var B): Upper Passage",
-          instructions: "Navigate through the high corridor to arrive at the lower-right destination.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          title: "Level 1 (Var B): Right to Left",
+          instructions: "Navigate through the lower corridor to arrive at the left destination.",
+          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var B",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 2, y: 11 },
+          startPivot: { x: 16, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 2 },
+          targetPivot: { x: 2, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
-          obstacles: [{x:9, y:6},{x:9, y:7},{x:9, y:8},{x:9, y:9},{x:9, y:10},{x:9, y:11},{x:9, y:12},{x:9, y:13},{x:9, y:14}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:9, y:0},{x:9, y:1},{x:9, y:2},{x:9, y:3},{x:9, y:4},{x:9, y:5},{x:9, y:6},{x:9, y:7},{x:9, y:8}]
         },
         {
           id: 1,
-          title: "Level 1 (Var C): The Divided Grid",
+          title: "Level 1 (Var C): Top to Bottom",
           instructions: "Move through the horizontal division gap to align with the target.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var C",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 11 },
+          targetPivot: { x: 10, y: 1 },
           targetBlocks: [...INITIAL_BLOCKS],
-          obstacles: [{x:0, y:7},{x:1, y:7},{x:2, y:7},{x:3, y:7},{x:4, y:7},{x:5, y:7},{x:6, y:7},{x:12, y:7},{x:13, y:7},{x:14, y:7},{x:15, y:7},{x:16, y:7},{x:17, y:7},{x:18, y:7},{x:19, y:7}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:0, y:7},{x:1, y:7},{x:2, y:7},{x:3, y:7},{x:4, y:7},{x:5, y:7},{x:6, y:7},{x:14, y:7},{x:15, y:7},{x:16, y:7},{x:17, y:7},{x:18, y:7},{x:19, y:7}]
         },
         {
           id: 1,
-          title: "Level 1 (Var D): Left to Right Slit",
-          instructions: "Navigate the shape directly through the central slot.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          title: "Level 1 (Var D): Bottom to Top Diagonal",
+          instructions: "Navigate the shape up and across the central slot.",
+          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var D",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 1, y: 6 },
+          startPivot: { x: 3, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 6 },
+          targetPivot: { x: 15, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
-          obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
         },
         {
           id: 1,
-          title: "Level 1 (Var E): Low Stepping Stones",
-          instructions: "Use diagonal translation moves to bypass the vertical pillars.",
-          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves without other action types!",
+          title: "Level 1 (Var E): The Right Wall",
+          instructions: "Start from the bottom right and bypass the pillar to reach the top left.",
+          challengeText: "Translate Challenge: Reach the target in exactly 2 Translation moves!",
           parMoves: 2,
           variationLabel: "Var E",
           checkChallenge: (history) => history.every(h => h.type === 'translate') && history.length === 2,
-          startPivot: { x: 2, y: 1 },
+          startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 10 },
+          targetPivot: { x: 2, y: 10 },
           targetBlocks: [...INITIAL_BLOCKS],
-          obstacles: [{x:7, y:0},{x:7, y:1},{x:7, y:2},{x:7, y:3},{x:7, y:4},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6}]
         }
       ],
 
-      // --- LEVEL 2: TIGHT SQUEEZE (5 Variations) ---
+      // --- LEVEL 2: TIGHT SQUEEZE (Rotations) ---
       [
         {
           id: 2,
-          title: "Level 2 (Var A): Gap Rotation",
+          title: "Level 2 (Var A): Right Gap Rotation",
           instructions: "You need to rotate the shape to pass safely through the narrow vertical gap.",
-          challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var A",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const f = history.filter(h => h.type === 'reflect').length;
-            return r === 1 && t <= 2 && f === 0;
+            return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 7 },
+          startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 7 },
+          targetPivot: { x: 2, y: 7 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:9, y:0},{x:9, y:1},{x:9, y:2},{x:9, y:3},{x:9, y:4},{x:9, y:5},{x:9, y:6},{x:9, y:10},{x:9, y:11},{x:9, y:12},{x:9, y:13},{x:9, y:14}]
         },
         {
           id: 2,
-          title: "Level 2 (Var B): Horizontal Slot",
+          title: "Level 2 (Var B): Top Horizontal Slot",
           instructions: "Rotate 180 degrees to navigate the horizontal tunnel.",
-          challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var B",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const f = history.filter(h => h.type === 'reflect').length;
-            return r === 1 && t <= 2 && f === 0;
+            return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 1 },
+          startPivot: { x: 10, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 15, y: 11 },
+          targetPivot: { x: 10, y: 1 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
-          obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:6, y:6},{x:7, y:6},{x:12, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:6, y:6},{x:7, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
         },
         {
           id: 2,
-          title: "Level 2 (Var C): Low Pass Tunnel",
+          title: "Level 2 (Var C): Bottom Pass Tunnel",
           instructions: "Maneuver and rotate the L-shape to make it slide through the floor opening.",
-          challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var C",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const f = history.filter(h => h.type === 'reflect').length;
-            return r === 1 && t <= 2 && f === 0;
+            return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 11 },
+          startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 2 },
+          targetPivot: { x: 16, y: 11 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
         },
         {
           id: 2,
-          title: "Level 2 (Var D): The Split Chimney",
+          title: "Level 2 (Var D): The Split Chimney (Right Start)",
           instructions: "Position and rotate the piece vertically to pass through the high gate.",
-          challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var D",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const f = history.filter(h => h.type === 'reflect').length;
-            return r === 1 && t <= 2 && f === 0;
+            return r === 1 && t <= 2;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 11 },
+          targetPivot: { x: 2, y: 11 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8}]
         },
         {
           id: 2,
-          title: "Level 2 (Var E): Labyrinth Gateway",
-          instructions: "Perform a perfect turn inside the central chamber to slip into the right quadrant.",
-          challengeText: "Rotation Challenge: Reach the target using exactly 1 Rotation and at most 2 Translations!",
+          title: "Level 2 (Var E): Labyrinth Top Gateway",
+          instructions: "Perform a perfect turn inside the central chamber to slip into the bottom quadrant.",
+          challengeText: "Rotation Challenge: Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
           variationLabel: "Var E",
           checkChallenge: (history) => {
             const r = history.filter(h => h.type === 'rotate').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const f = history.filter(h => h.type === 'reflect').length;
-            return r === 1 && t <= 2 && f === 0;
+            return r === 1 && t <= 2;
           },
-          startPivot: { x: 1, y: 6 },
+          startPivot: { x: 2, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 6 },
+          targetPivot: { x: 16, y: 1 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:7, y:0},{x:7, y:1},{x:7, y:2},{x:7, y:3},{x:7, y:4},{x:7, y:5},{x:7, y:9},{x:7, y:10},{x:7, y:11},{x:7, y:12},{x:7, y:13},{x:7, y:14}]
         }
       ],
 
-      // --- LEVEL 3: MIRROR MAZE (5 Variations) ---
+      // --- LEVEL 3: MIRROR MAZE (Reflections across explicit lines) ---
       [
         {
           id: 3,
-          title: "Level 3 (Var A): Pivot Flop",
-          instructions: "Combine translation and reflection to match the target's orientation.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          title: "Level 3 (Var A): The Vertical Mirror",
+          instructions: "Reflect the shape exactly across the Red Dotted Mirror Line to bypass the solid wall.",
+          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
           variationLabel: "Var A",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const r = history.filter(h => h.type === 'rotate').length;
-            return f === 1 && t === 1 && r === 0;
+            return f === 1 && t === 1;
           },
-          startPivot: { x: 2, y: 11 },
+          startPivot: { x: 4, y: 6 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 2 },
-          targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
-          obstacles: [{x:6, y:7},{x:7, y:7},{x:8, y:7},{x:9, y:7},{x:10, y:7},{x:11, y:7},{x:12, y:7},{x:6, y:8},{x:6, y:9},{x:6, y:10},{x:6, y:11},{x:6, y:12},{x:6, y:13},{x:6, y:14}]
+          targetPivot: { x: 16, y: 6 },
+          targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }],
+          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8},{x:10, y:9},{x:10, y:10},{x:10, y:11},{x:10, y:12},{x:10, y:13},{x:10, y:14}]
         },
         {
           id: 3,
-          title: "Level 3 (Var B): Horizontal Flip",
-          instructions: "Use horizontal reflection to inverse the L-shape across the partition wall.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          title: "Level 3 (Var B): The Horizontal Flip",
+          instructions: "Use the Horizontal Mirror Line to jump your shape into the bottom room.",
+          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
           variationLabel: "Var B",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const r = history.filter(h => h.type === 'rotate').length;
-            return f === 1 && t === 1 && r === 0;
+            return f === 1 && t === 1;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 8, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 12 },
+          targetPivot: { x: 8, y: 3 },
           targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
-          obstacles: [{x:0, y:6},{x:1, y:6},{x:2, y:6},{x:3, y:6},{x:4, y:6},{x:5, y:6},{x:12, y:6},{x:13, y:6},{x:14, y:6},{x:15, y:6},{x:16, y:6},{x:17, y:6},{x:18, y:6},{x:19, y:6}]
+          mirrorLines: [{ axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:0, y:7},{x:1, y:7},{x:2, y:7},{x:3, y:7},{x:4, y:7},{x:5, y:7},{x:6, y:7},{x:7, y:7},{x:8, y:7},{x:9, y:7},{x:10, y:7},{x:11, y:7},{x:12, y:7},{x:13, y:7},{x:14, y:7},{x:15, y:7},{x:16, y:7},{x:17, y:7},{x:18, y:7},{x:19, y:7}]
         },
         {
           id: 3,
-          title: "Level 3 (Var C): High Divider Mirror",
+          title: "Level 3 (Var C): High Divider Mirror (Right Start)",
           instructions: "Fling the shape into the upper compartment using reflection mechanics.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
           variationLabel: "Var C",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const r = history.filter(h => h.type === 'rotate').length;
-            return f === 1 && t === 1 && r === 0;
+            return f === 1 && t === 1;
           },
-          startPivot: { x: 3, y: 12 },
+          startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 12 },
+          targetPivot: { x: 4, y: 2 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
-          obstacles: [{x:9, y:5},{x:9, y:6},{x:9, y:7},{x:9, y:8},{x:9, y:9},{x:9, y:10},{x:9, y:11},{x:9, y:12},{x:9, y:13},{x:9, y:14}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8}]
         },
         {
           id: 3,
-          title: "Level 3 (Var D): Dual Post Mirror",
-          instructions: "Align the shape across the dual central posts by translating then reflecting.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          title: "Level 3 (Var D): Dual Post Mirrors",
+          instructions: "Align the shape across the central posts by selecting the correct mirror line.",
+          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
           variationLabel: "Var D",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const r = history.filter(h => h.type === 'rotate').length;
-            return f === 1 && t === 1 && r === 0;
+            return f === 1 && t === 1;
           },
           startPivot: { x: 2, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 10 },
+          targetPivot: { x: 2, y: 12 },
           targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
-          obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:12, y:8},{x:12, y:9},{x:12, y:10}]
+          mirrorLines: [{ axis: 'horizontal', pos: 7 }, { axis: 'vertical', pos: 10 }],
+          obstacles: [{x:0, y:7},{x:1, y:7},{x:2, y:7},{x:3, y:7},{x:4, y:7},{x:5, y:7}]
         },
         {
           id: 3,
-          title: "Level 3 (Var E): Symmetric Gap",
-          instructions: "Perform a flip of the shape to match the target nested inside the right corner.",
-          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation to match the target!",
+          title: "Level 3 (Var E): Cross Grid Flip",
+          instructions: "Perform a flip of the shape to match the target nested across the map.",
+          challengeText: "Reflection Challenge: Use exactly 1 Reflection and 1 Translation!",
           parMoves: 2,
           variationLabel: "Var E",
           checkChallenge: (history) => {
             const f = history.filter(h => h.type === 'reflect').length;
             const t = history.filter(h => h.type === 'translate').length;
-            const r = history.filter(h => h.type === 'rotate').length;
-            return f === 1 && t === 1 && r === 0;
+            return f === 1 && t === 1;
           },
-          startPivot: { x: 4, y: 1 },
+          startPivot: { x: 15, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 15, y: 2 },
+          targetPivot: { x: 5, y: 2 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
-          obstacles: [{x:9, y:0},{x:9, y:1},{x:9, y:2},{x:9, y:3},{x:9, y:4},{x:9, y:5},{x:9, y:6}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4}]
         }
       ],
 
-      // --- LEVEL 4: SLALOM ZIGZAG (5 Variations) ---
+      // --- LEVEL 4: SLALOM ZIGZAG (All 3 moves required) ---
       [
         {
           id: 4,
           title: "Level 4 (Var A): Zigzag Pillars",
-          instructions: "Navigate through the central pillars by combining your moves efficiently.",
+          instructions: "Combine all three transformation rules to weave past the central pillars.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
           parMoves: 3,
           variationLabel: "Var A",
@@ -359,11 +364,12 @@
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 17, y: 11 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x: 6, y: 0}, {x: 6, y: 1}, {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 6, y: 5}, {x: 6, y: 6}, {x: 6, y: 7}, {x: 6, y: 8},{x: 12, y: 6}, {x: 12, y: 7}, {x: 12, y: 8}, {x: 12, y: 9}, {x: 12, y: 10}, {x: 12, y: 11}, {x: 12, y: 12}, {x: 12, y: 13}, {x: 12, y: 14}]
         },
         {
           id: 4,
-          title: "Level 4 (Var B): Horizontal Slalom",
+          title: "Level 4 (Var B): Horizontal Slalom (Top Start)",
           instructions: "Zigzag through horizontal split bars to fit inside the bottom target.",
           challengeText: "Triple Crown Challenge: Solve this puzzle using exactly one of each transformation (1 Translate, 1 Rotate, 1 Reflect)!",
           parMoves: 3,
@@ -378,6 +384,7 @@
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 17, y: 2 },
           targetBlocks: [{x:0.5, y:-0.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:0, y:8},{x:1, y:8},{x:2, y:8},{x:3, y:8},{x:4, y:8},{x:5, y:8},{x:6, y:8},{x:7, y:8},{x:8, y:8},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4},{x:17, y:4},{x:18, y:4},{x:19, y:4}]
         },
         {
@@ -397,6 +404,7 @@
           startBlocks: [...INITIAL_BLOCKS],
           targetPivot: { x: 18, y: 13 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:13, y:10},{x:13, y:11},{x:13, y:12},{x:13, y:13},{x:13, y:14}]
         },
         {
@@ -412,11 +420,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 3, y: 3 },
+          startPivot: { x: 16, y: 3 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 11 },
+          targetPivot: { x: 3, y: 11 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5}],
-          obstacles: [{x:8, y:0},{x:8, y:1},{x:8, y:2},{x:8, y:3},{x:8, y:4},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:8, y:12},{x:8, y:13},{x:8, y:14}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:10, y:0},{x:10, y:1},{x:10, y:2},{x:10, y:3},{x:10, y:4},{x:10, y:8},{x:10, y:9},{x:10, y:10},{x:10, y:11},{x:10, y:12},{x:10, y:13},{x:10, y:14}]
         },
         {
           id: 4,
@@ -431,11 +440,12 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return t === 1 && r === 1 && f === 1;
           },
-          startPivot: { x: 2, y: 7 },
+          startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 7 },
+          targetPivot: { x: 2, y: 7 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
-          obstacles: [{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:13, y:7},{x:13, y:8},{x:13, y:9},{x:13, y:10},{x:13, y:11}]
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          obstacles: [{x:5, y:3},{x:5, y:4},{x:5, y:5},{x:5, y:6},{x:5, y:7},{x:14, y:7},{x:14, y:8},{x:14, y:9},{x:14, y:10},{x:14, y:11}]
         }
       ],
 
@@ -449,10 +459,11 @@
           parMoves: 5,
           variationLabel: "Var A",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 2, y: 12 },
+          startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 12 },
+          targetPivot: { x: 2, y: 12 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:3},{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:9},{x:8, y:10},{x:8, y:11},{x:9, y:3},{x:10, y:3},{x:11, y:3},{x:12, y:3},{x:12, y:4},{x:12, y:5},{x:12, y:6},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11}]
         },
         {
@@ -463,10 +474,11 @@
           parMoves: 5,
           variationLabel: "Var B",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 3, y: 3 },
+          startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 3 },
+          targetPivot: { x: 2, y: 2 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:8, y:4},{x:8, y:5},{x:8, y:6},{x:8, y:7},{x:8, y:8},{x:8, y:12},{x:8, y:13},{x:8, y:14},{x:12, y:0},{x:12, y:1},{x:12, y:2},{x:12, y:3},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10}]
         },
         {
@@ -477,10 +489,11 @@
           parMoves: 5,
           variationLabel: "Var C",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 12 },
+          targetPivot: { x: 2, y: 12 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x: -2.5, y: -0.5}, {x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
         },
         {
@@ -491,10 +504,11 @@
           parMoves: 5,
           variationLabel: "Var D",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 2, y: 11 },
+          startPivot: { x: 16, y: 12 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 2 },
+          targetPivot: { x: 2, y: 2 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:10, y:5},{x:10, y:6},{x:10, y:7},{x:10, y:8},{x:10, y:9},{x:10, y:10}]
         },
         {
@@ -505,10 +519,11 @@
           parMoves: 5,
           variationLabel: "Var E",
           checkChallenge: (history) => history.length <= 5,
-          startPivot: { x: 1, y: 1 },
+          startPivot: { x: 16, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 1 },
+          targetPivot: { x: 2, y: 1 },
           targetBlocks: [{x:-0.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5}],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:4, y:4},{x:5, y:4},{x:6, y:4},{x:7, y:4},{x:8, y:4},{x:9, y:4},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:13, y:4},{x:14, y:4},{x:15, y:4},{x:16, y:4}]
         }
       ],
@@ -527,10 +542,11 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 1, y: 1 },
+          startPivot: { x: 16, y: 1 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 13 },
+          targetPivot: { x: 2, y: 13 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x: 0, y: 11}, {x: 1, y: 11}, {x: 2, y: 11}, {x: 3, y: 11}, {x: 4, y: 11}, {x: 5, y: 11}, {x: 5, y: 10}, {x: 5, y: 9}, {x: 5, y: 8}, {x: 5, y: 7}, {x: 5, y: 6}, {x: 5, y: 5}, {x: 5, y: 4}, {x: 5, y: 3}, {x: 5, y: 2}, {x: 5, y: 1}, {x: 10, y: 14}, {x: 10, y: 13}, {x: 10, y: 12}, {x: 10, y: 11}, {x: 10, y: 10}, {x: 10, y: 9}, {x: 10, y: 8}, {x: 10, y: 7}, {x: 10, y: 6}, {x: 10, y: 5}, {x: 11, y: 5}, {x: 12, y: 5}, {x: 13, y: 5}, {x: 14, y: 5}, {x: 15, y: 5}, {x: 15, y: 6}, {x: 15, y: 7}, {x: 15, y: 8}, {x: 15, y: 9}, {x: 15, y: 10}, {x: 15, y: 11}, {x: 15, y: 12}]
         },
         {
@@ -545,10 +561,11 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 1, y: 13 },
+          startPivot: { x: 16, y: 13 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 1 },
+          targetPivot: { x: 2, y: 1 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:4, y:0},{x:4, y:1},{x:4, y:2},{x:4, y:3},{x:4, y:4},{x:4, y:5},{x:4, y:6},{x:4, y:7},{x:4, y:8},{x:4, y:9},{x:4, y:10},{x:15, y:4},{x:15, y:5},{x:15, y:6},{x:15, y:7},{x:15, y:8},{x:15, y:9},{x:15, y:10},{x:15, y:11},{x:15, y:12},{x:15, y:13},{x:15, y:14}]
         },
         {
@@ -563,10 +580,11 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 2, y: 2 },
+          startPivot: { x: 16, y: 2 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 17, y: 12 },
+          targetPivot: { x: 2, y: 12 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:6},{x:6, y:7},{x:6, y:8},{x:12, y:6},{x:12, y:7},{x:12, y:8},{x:12, y:9},{x:12, y:10},{x:12, y:11},{x:12, y:12},{x:12, y:13},{x:12, y:14}]
         },
         {
@@ -581,10 +599,11 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 3, y: 7 },
+          startPivot: { x: 16, y: 7 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 16, y: 7 },
+          targetPivot: { x: 3, y: 7 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:9, y:4},{x:9, y:5},{x:9, y:6},{x:9, y:8},{x:9, y:9},{x:9, y:10},{x:10, y:4},{x:11, y:4},{x:12, y:4},{x:12, y:5},{x:12, y:6},{x:12, y:8},{x:12, y:9},{x:12, y:10}]
         },
         {
@@ -599,10 +618,11 @@
             const f = history.filter(h => h.type === 'reflect').length;
             return r >= 2 && f >= 2;
           },
-          startPivot: { x: 1, y: 1 },
+          startPivot: { x: 16, y: 11 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 18, y: 1 },
+          targetPivot: { x: 2, y: 1 },
           targetBlocks: [{ x: -0.5, y: -0.5 }, { x: -0.5, y: -1.5 }, { x: -0.5, y: -2.5 }, { x: -1.5, y: -0.5 }, { x: -2.5, y: -0.5 }],
+          mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
           obstacles: [{x:6, y:0},{x:6, y:1},{x:6, y:2},{x:6, y:3},{x:6, y:4},{x:6, y:5},{x:6, y:9},{x:6, y:10},{x:6, y:11},{x:6, y:12},{x:6, y:13},{x:6, y:14},{x:13, y:0},{x:13, y:1},{x:13, y:2},{x:13, y:3},{x:13, y:4},{x:13, y:5},{x:13, y:9},{x:13, y:10},{x:13, y:11},{x:13, y:12},{x:13, y:13},{x:13, y:14}]
         }
       ]
@@ -631,12 +651,32 @@
       return blocks.map(b => ({ x: pivot.x + b.x, y: pivot.y + b.y }));
     };
 
+    // Standard Grid Collision Check
     const checkCollision = (absCoords, obstacles) => {
       for (let coord of absCoords) {
         const gridX = Math.floor(coord.x);
         const gridY = Math.floor(coord.y);
         if (gridX < 0 || gridX >= GRID_W || gridY < 0 || gridY >= GRID_H) return true;
         if (obstacles.some(obs => obs.x === gridX && obs.y === gridY)) return true;
+      }
+      return false;
+    };
+
+    // Raycast / Sweep Collision Check to prevent jumping through walls
+    const checkPathCollision = (startP, endP, blocks, obstacles) => {
+      const dx = endP.x - startP.x;
+      const dy = endP.y - startP.y;
+      const steps = Math.max(Math.abs(dx), Math.abs(dy));
+      if (steps === 0) return false;
+      
+      // Check every 1 unit step along the linear translation vector
+      for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const midP = {
+          x: Math.round(startP.x + dx * t),
+          y: Math.round(startP.y + dy * t)
+        };
+        if (checkCollision(getAbsoluteCoords(midP, blocks), obstacles)) return true;
       }
       return false;
     };
@@ -720,7 +760,9 @@
       const [transDirY, setTransDirY] = useState('up');
       const [rotAngle, setRotAngle] = useState('90'); 
       const [rotDir, setRotDir] = useState('cw'); 
-      const [reflectAxis, setReflectAxis] = useState('vertical'); 
+      
+      // Store selected explicit Mirror Line (Index)
+      const [selectedMirrorLineIdx, setSelectedMirrorLineIdx] = useState(0);
 
       // Dynamically fetch current active configuration
       const level = useMemo(() => {
@@ -745,6 +787,7 @@
         setSecondsLeft(maxTimeLimit); // Reset dynamic countdown timer
         setChallengeCompleted(false);
         setSheetStatus('idle');
+        setSelectedMirrorLineIdx(0); // Reset mirror line selector
         resetCommandUI();
       }, [level, gameStarted, maxTimeLimit]);
 
@@ -767,7 +810,6 @@
         setTransDistX(0);
         setTransDistY(0);
         setRotAngle('90');
-        setReflectAxis('vertical');
       };
 
       // Select a new random puzzle from the database for the active level
@@ -801,15 +843,21 @@
           });
         }
         else if (activeTab === 'reflect') {
-          nextBlocks = blocks.map(b => {
-            if (reflectAxis === 'vertical') return { x: -b.x, y: b.y }; 
-            if (reflectAxis === 'horizontal') return { x: b.x, y: -b.y }; 
-            return b;
-          });
+          const mirror = level.mirrorLines && level.mirrorLines[selectedMirrorLineIdx];
+          if (mirror) {
+            // Apply reflection mathematics explicitly across the selected line
+            if (mirror.axis === 'vertical') {
+              nextPivot.x = 2 * mirror.pos - pivot.x;
+              nextBlocks = blocks.map(b => ({ x: -b.x, y: b.y }));
+            } else {
+              nextPivot.y = 2 * mirror.pos - pivot.y;
+              nextBlocks = blocks.map(b => ({ x: b.x, y: -b.y }));
+            }
+          }
         }
 
         return { pivot: nextPivot, blocks: nextBlocks };
-      }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, reflectAxis]);
+      }, [pivot, blocks, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, rotDir, level.mirrorLines, selectedMirrorLineIdx]);
 
       // Handle Life Loss (Due to crashes or timer)
       const handleLifeLoss = (reasonMessage) => {
@@ -940,22 +988,29 @@
       const commitMovement = () => {
         if (status !== 'playing' || isGameOver || showContinueOffer) return;
 
+        // Verify Continuous Translation Path to Prevent Jumping Over Barriers!
+        if (activeTab === 'translate') {
+          if (checkPathCollision(pivot, pendingState.pivot, blocks, level.obstacles)) {
+            handleLifeLoss("Path Blocked! Your shape crashed into a solid wall mid-slide.");
+            return;
+          }
+        }
+
+        // Final Destination Check
+        const absPendingCoords = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
+        if (checkCollision(absPendingCoords, level.obstacles)) {
+          handleLifeLoss("Collision! Your shape landed on an obstacle or went out of bounds.");
+          return;
+        }
+
+        // Apply Transformation safely
+        setPivot(pendingState.pivot);
+        setBlocks(pendingState.blocks);
+        
         // Record action context
         const actionRecord = { pivot, blocks, type: activeTab };
         const updatedHistory = [...history, actionRecord];
         setHistory(updatedHistory);
-
-        const absPendingCoords = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
-        
-        // Check Collision
-        if (checkCollision(absPendingCoords, level.obstacles)) {
-          handleLifeLoss("Collision! Your shape hit an obstacle or went out of bounds.");
-          return;
-        }
-
-        // Apply Transformation
-        setPivot(pendingState.pivot);
-        setBlocks(pendingState.blocks);
         resetCommandUI();
 
         // Check Win Condition
@@ -1115,6 +1170,27 @@
           ctx.fillText(y, 4, CANVAS_HEIGHT - y * CELL_SIZE - 4);
         }
 
+        // Draw Explicit Red Dotted Mirror Lines
+        if (level.mirrorLines && level.mirrorLines.length > 0) {
+          level.mirrorLines.forEach((m, idx) => {
+            ctx.strokeStyle = idx === selectedMirrorLineIdx ? '#ef4444' : '#fca5a5'; // Red if selected, light red if not
+            ctx.lineWidth = idx === selectedMirrorLineIdx ? 3 : 2;
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            if (m.axis === 'vertical') {
+              const x = m.pos * CELL_SIZE;
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, CANVAS_HEIGHT);
+            } else {
+              const y = CANVAS_HEIGHT - m.pos * CELL_SIZE;
+              ctx.moveTo(0, y);
+              ctx.lineTo(CANVAS_WIDTH, y);
+            }
+            ctx.stroke();
+          });
+          ctx.setLineDash([]); // Reset line dash
+        }
+
         const targetAbs = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
         ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'; 
         ctx.strokeStyle = '#16a34a'; 
@@ -1150,8 +1226,15 @@
         
         if (isMoving && status === 'playing') {
           const ghostAbs = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
-          ctx.fillStyle = 'rgba(156, 163, 175, 0.45)'; 
-          ctx.strokeStyle = '#4b5563';
+          
+          // Path collision indicator for Ghost
+          let pathBlocked = false;
+          if (activeTab === 'translate') {
+            pathBlocked = checkPathCollision(pivot, pendingState.pivot, blocks, level.obstacles);
+          }
+
+          ctx.fillStyle = pathBlocked ? 'rgba(239, 68, 68, 0.45)' : 'rgba(156, 163, 175, 0.45)'; 
+          ctx.strokeStyle = pathBlocked ? '#b91c1c' : '#4b5563';
           ctx.setLineDash([4, 4]);
           ctx.lineWidth = 2;
           ghostAbs.forEach(coord => {
@@ -1187,7 +1270,7 @@
         ctx.fill();
         ctx.stroke();
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab]);
 
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
@@ -1231,12 +1314,19 @@
         if (activeTab === 'reflect') {
           return (
             <div className="flex flex-wrap items-center gap-y-1.5 text-base font-medium text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <span>"Reflect across a</span>
-              <select value={reflectAxis} onChange={e => setReflectAxis(e.target.value)} className="mx-1.5 px-1 py-0.5 border rounded bg-white text-blue-600 font-bold text-sm shadow-sm">
-                <option value="vertical">Vertical</option>
-                <option value="horizontal">Horizontal</option>
+              <span>"Reflect shape across </span>
+              <select 
+                value={selectedMirrorLineIdx} 
+                onChange={e => setSelectedMirrorLineIdx(parseInt(e.target.value))} 
+                className="mx-1.5 px-1 py-0.5 border rounded bg-white text-red-600 font-bold text-sm shadow-sm"
+              >
+                {level.mirrorLines && level.mirrorLines.map((m, i) => (
+                  <option key={i} value={i}>
+                    {m.axis === 'vertical' ? `Vertical Line X=${m.pos}` : `Horizontal Line Y=${m.pos}`}
+                  </option>
+                ))}
               </select>
-              <span>mirror line on pivot."</span>
+              <span>."</span>
             </div>
           );
         }
