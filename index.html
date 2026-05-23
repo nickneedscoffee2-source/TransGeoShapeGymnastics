@@ -128,14 +128,14 @@
         id: 'tut2',
         title: "Training Step 2: Rotation (Turn)",
         instructions: "ROTATE (turn) the shape to exactly match the target's orientation.",
-        challengeText: "Turn the shape 90° Clockwise using exactly 1 Rotation!",
+        challengeText: "Turn the shape 180° using exactly 1 Rotation!",
         parMoves: 1,
         variationLabel: "Tutorial",
         checkChallenge: () => true,
         startPivot: { x: 10, y: 7 },
         startBlocks: [...INITIAL_BLOCKS],
         targetPivot: { x: 10, y: 7 },
-        targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}], // 90 CW
+        targetBlocks: [...FLIPPED_ROTATED_BLOCKS], // 180 deg
         mirrorLines: [],
         obstacles: [],
         allowedMoves: { translate: 0, rotate: 1, reflect: 0 }
@@ -155,6 +155,27 @@
         mirrorLines: [{ axis: 'vertical', pos: 10 }], // Render the mirror line visibly
         obstacles: [],
         allowedMoves: { translate: 0, rotate: 0, reflect: 1 }
+      },
+      {
+        id: 'tut4',
+        title: "Training Step 4: The Combo",
+        instructions: "Combine Translation, Rotation, and Reflection to match the target!",
+        challengeText: "Use exactly 1 Translate, 1 Rotate, and 1 Reflect move to reach the target!",
+        parMoves: 3,
+        variationLabel: "Tutorial",
+        checkChallenge: (history) => {
+          const t = history.filter(h => h.type === 'translate').length;
+          const r = history.filter(h => h.type === 'rotate').length;
+          const f = history.filter(h => h.type === 'reflect').length;
+          return t === 1 && r === 1 && f === 1;
+        },
+        startPivot: { x: 4, y: 4 },
+        startBlocks: [...INITIAL_BLOCKS],
+        targetPivot: { x: 16, y: 10 },
+        targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
+        mirrorLines: [{ axis: 'vertical', pos: 10 }],
+        obstacles: [],
+        allowedMoves: { translate: 1, rotate: 1, reflect: 1 }
       }
     ];
 
@@ -922,7 +943,7 @@
             const nextTab = tabs.find(t => {
                  const l = level.allowedMoves ? level.allowedMoves[t] : 99;
                  const u = moveTally[t.charAt(0)];
-                 const tutLocked = tutorialStep > 0 && tutorialStep !== tabs.indexOf(t) + 1;
+                 const tutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== tabs.indexOf(t) + 1;
                  return u < l && !tutLocked;
             });
             if (nextTab) setActiveTab(nextTab);
@@ -1166,7 +1187,7 @@
         const availableTabs = tabs.filter(t => {
             const limit = level.allowedMoves ? level.allowedMoves[t] : 99;
             const used = moveTally[t.charAt(0)];
-            const tutLocked = tutorialStep > 0 && tutorialStep !== tabs.indexOf(t) + 1;
+            const tutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== tabs.indexOf(t) + 1;
             return used < limit && !tutLocked;
         });
         
@@ -1176,30 +1197,51 @@
             setActiveTab(availableTabs[nextIdx]);
         }
       }
+      
+      const handleNextLevel = useCallback(() => {
+          if (tutorialStep > 0) {
+            if (tutorialStep === 4) {
+              setTutorialStep(0);
+              setLevelIdx(0);
+            } else {
+              setTutorialStep(tutorialStep + 1);
+            }
+          } else {
+            setLevelIdx(levelIdx + 1);
+          }
+      }, [tutorialStep, levelIdx]);
 
       // Re-bindable refs for the keyboard listener so it always points to the latest scope variables
       const commitMovementRef = useRef(null);
       const toggleTabsRef = useRef(null);
+      const nextLevelRef = useRef(null);
 
       useEffect(() => {
           commitMovementRef.current = commitMovement;
           toggleTabsRef.current = toggleTabs;
+          nextLevelRef.current = handleNextLevel;
       });
 
       // --- UNIVERSAL KEYBOARD CONTROLS ---
       useEffect(() => {
         function handleKeyDown(e) {
-          if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
+          if (showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
-          // Global Enter to Commit
+          // Global Enter to Commit or Advance Level
           if (e.key === 'Enter') {
               e.preventDefault();
-              if (commitMovementRef.current) commitMovementRef.current();
+              if (status === 'won') {
+                  if (nextLevelRef.current) nextLevelRef.current();
+              } else if (status === 'playing') {
+                  if (commitMovementRef.current) commitMovementRef.current();
+              }
               return;
           }
+          
+          if (status !== 'playing') return;
 
           // Global Left Shift to toggle Tabs
           if (e.code === 'ShiftLeft' || (e.key === 'Shift' && e.location === 1)) {
@@ -1453,7 +1495,8 @@
               setChallengeCompleted(true);
               if (tutorialStep === 1) setMessage("Excellent! You translated the shape perfectly.");
               if (tutorialStep === 2) setMessage("Great job! You rotated the shape to match.");
-              if (tutorialStep === 3) setMessage("Fantastic! You reflected the shape. You are ready for the Arena!");
+              if (tutorialStep === 3) setMessage("Fantastic! You reflected the shape.");
+              if (tutorialStep === 4) setMessage("Combo completed! You are ready for the Arena!");
               return;
           }
 
@@ -1989,7 +2032,7 @@
             <div className="flex flex-wrap gap-1">
               {tutorialStep > 0 ? (
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-md shadow-sm">
-                    Training Course: Step {tutorialStep}/3
+                    Training Course: Step {tutorialStep}/4
                   </span>
               ) : (
                   LEVEL_VARIATIONS.map((_, i) => (
@@ -2151,21 +2194,10 @@
 
                       <div className="flex flex-wrap justify-center gap-1.5">
                         {status === 'won' && (
-                          <button onClick={() => {
-                              if (tutorialStep > 0) {
-                                if (tutorialStep === 3) {
-                                  setTutorialStep(0);
-                                  setLevelIdx(0);
-                                } else {
-                                  setTutorialStep(tutorialStep + 1);
-                                }
-                              } else {
-                                setLevelIdx(levelIdx + 1);
-                              }
-                            }} 
+                          <button onClick={handleNextLevel} 
                             className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105"
                           >
-                            {tutorialStep > 0 ? (tutorialStep === 3 ? "Start Arena!" : "Next Tutorial") : "Next Level"}
+                            {tutorialStep > 0 ? (tutorialStep === 4 ? "Start Arena!" : "Next Tutorial") : "Next Level"}
                           </button>
                         )}
                         {status === 'crashed' && (
@@ -2324,7 +2356,7 @@
                   const usedMoves = moveTally[tab.charAt(0)];
                   const moveLimit = level.allowedMoves ? level.allowedMoves[tab] : 99;
                   const isExhausted = usedMoves >= moveLimit;
-                  const isTutLocked = tutorialStep > 0 && tutorialStep !== (idx + 1);
+                  const isTutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== (idx + 1);
                   const isLocked = isExhausted || isTutLocked;
 
                   return (
