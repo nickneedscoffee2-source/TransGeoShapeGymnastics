@@ -38,16 +38,6 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
-    
-    @keyframes ping-slow {
-      75%, 100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
-    }
-    .animate-ping-slow {
-      animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
   </style>
 </head>
 <body class="text-slate-800">
@@ -56,7 +46,7 @@
 
   <!-- React & Babel Transpiled Script -->
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo } = React;
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
     // --- GOOGLE SHEETS INTEGRATION CONFIG ---
     // User configured Apps Script Endpoint
@@ -746,8 +736,9 @@
       const [gameStarted, setGameStarted] = useState(false);
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
-      // Game Over States
-      const [isGameOver, setIsGameOver] = useState(false);
+      // Track Continues
+      const [hasContinued, setHasContinued] = useState(false);
+      const [showContinueOffer, setShowContinueOffer] = useState(false);
 
       // Score Tracking States
       const [sheetStatus, setSheetStatus] = useState('idle'); 
@@ -779,6 +770,10 @@
 
       // Current Level Obstacles
       const [currentObstacles, setCurrentObstacles] = useState([]);
+
+      // Secret Time Bonus Item (+10s)
+      const [timeBonusNode, setTimeBonusNode] = useState(null);
+      const [bonusAlert, setBonusAlert] = useState(null);
 
       // Narwhal Mini-Game States
       const narwhalSpawnedThisLevel = useRef(false);
@@ -820,24 +815,55 @@
         return LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx]);
 
-      // Handle Level or Variation load
-      useEffect(() => {
-        if (!gameStarted) return;
+      const resetCommandUI = () => {
+        setTransDistX(0);
+        setTransDistY(0);
+        setRotAngle('90');
+      };
+
+      const initLevelData = useCallback(() => {
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
         setCurrentObstacles([...level.obstacles]);
         setStatus('playing');
         setMessage('');
         setHistory([]);
-        setSecondsLeft(maxTimeLimit); 
+        setSecondsLeft(maxTimeLimit);
         setChallengeCompleted(false);
         setSheetStatus('idle');
         setSelectedMirrorLineIdx(0);
         setMathQuiz(null);
         setIsNarwhalActive(false);
         narwhalSpawnedThisLevel.current = false;
+        setHasContinued(false);
         resetCommandUI();
-      }, [level, gameStarted, maxTimeLimit]);
+        
+        // Randomly place +10s Time Bonus within a few tiles of start
+        let bx, by, bAttempts = 0, bValid = false;
+        while (!bValid && bAttempts < 100) {
+          bx = level.startPivot.x + Math.floor(Math.random() * 9) - 4; // -4 to +4 range
+          by = level.startPivot.y + Math.floor(Math.random() * 9) - 4;
+          
+          if (bx >= 1 && bx < GRID_W - 1 && by >= 1 && by < GRID_H - 1) {
+              const isObstacle = level.obstacles.some(o => o.x === bx && o.y === by);
+              const isStart = bx === level.startPivot.x && by === level.startPivot.y;
+              if (!isObstacle && !isStart) bValid = true;
+          }
+          bAttempts++;
+        }
+        if (bValid) {
+          setTimeBonusNode({ x: bx, y: by, active: true });
+        } else {
+          setTimeBonusNode(null);
+        }
+      }, [level, maxTimeLimit]);
+
+      // Handle Level or Variation load
+      useEffect(() => {
+        if (gameStarted) {
+          initLevelData();
+        }
+      }, [initLevelData, gameStarted]);
 
       // Trigger Narwhal Random Spawn
       useEffect(() => {
@@ -846,10 +872,19 @@
             const timer = setTimeout(() => {
                 narwhalSpawnedThisLevel.current = true;
                 const fromLeft = Math.random() > 0.5;
+                
+                // Configure Dynamic Speed Based on Difficulty
+                let baseSpd = 0.05;
+                if (difficulty === 'medium') baseSpd = 0.12;
+                if (difficulty === 'expert') baseSpd = 0.22;
+                if (difficulty === 'narwhal') baseSpd = 0.35;
+                
+                const speed = baseSpd + Math.random() * 0.05;
+
                 narwhalRef.current = {
                     x: fromLeft ? -2 : GRID_W + 2,
                     y: Math.random() * (GRID_H - 4) + 2,
-                    vx: (fromLeft ? 1 : -1) * (0.15 + Math.random() * 0.1), 
+                    vx: (fromLeft ? 1 : -1) * speed, 
                     vy: (Math.random() - 0.5) * 0.08,
                     active: true,
                     dir: fromLeft ? 1 : -1
@@ -858,7 +893,7 @@
             }, delay);
             return () => clearTimeout(timer);
         }
-      }, [status, gameStarted, mathQuiz]);
+      }, [status, gameStarted, mathQuiz, difficulty]);
 
       // Narwhal Animation Loop Trigger
       useEffect(() => {
@@ -924,8 +959,13 @@
 
       const handleQuizAnswer = (opt) => {
           if (opt === mathQuiz.answer) {
-              setSecondsLeft(prev => prev + 60);
-              setMessage("Correct! +1 Minute of Bonus Time granted by the Narwhal!");
+              let bonus = 30;
+              if (difficulty === 'easy') bonus = 45;
+              else if (difficulty === 'expert') bonus = 20;
+              else if (difficulty === 'narwhal') bonus = 15;
+
+              setSecondsLeft(prev => prev + bonus);
+              setMessage(`Correct! +${bonus} Seconds of Bonus Time granted by the Narwhal!`);
           } else {
               setMessage("Incorrect! The Narwhal swam away.");
           }
@@ -946,12 +986,6 @@
         if (studentName.trim().length > 0) {
           setGameStarted(true);
         }
-      };
-
-      const resetCommandUI = () => {
-        setTransDistX(0);
-        setTransDistY(0);
-        setRotAngle('90');
       };
 
       // Select a new random puzzle from the database for the active level
@@ -1004,7 +1038,7 @@
       // Universal Keyboard Listeners for All Tabs
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (status !== 'playing' || isGameOver || mathQuiz) return;
+          if (status !== 'playing' || showContinueOffer || mathQuiz) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1073,9 +1107,9 @@
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [status, isGameOver, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz]);
+      }, [status, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz]);
 
-      // Handle Crash Penalty (-10s instead of losing a life)
+      // Handle Crash Penalty (-10s)
       const handleCrash = (reasonMessage) => {
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
@@ -1087,8 +1121,7 @@
         setSecondsLeft(prev => {
             const newTime = prev - 10;
             if (newTime <= 0) {
-                setIsGameOver(true);
-                return 0;
+                return 0; // The effect below will catch it
             }
             setMessage(`⚠️ ${reasonMessage} Penalty: -10 Seconds!`);
             setTimeout(() => setMessage(''), 4000);
@@ -1096,32 +1129,38 @@
         });
       };
 
+      // Watch for Timeout specifically
+      useEffect(() => {
+        if (status === 'playing' && gameStarted && secondsLeft <= 0 && !showContinueOffer && !mathQuiz) {
+            if (!hasContinued) {
+                setShowContinueOffer(true);
+            } else {
+                initLevelData();
+                setMessage("⏰ Time's Up! Level restarted.");
+                setTimeout(() => setMessage(''), 4000);
+            }
+        }
+      }, [secondsLeft, status, gameStarted, showContinueOffer, mathQuiz, hasContinued, initLevelData]);
+
       // Live Countdown Timer Hook
       useEffect(() => {
         let timerId = null;
-        if (status === 'playing' && gameStarted && !isGameOver && !mathQuiz) {
+        if (status === 'playing' && gameStarted && !showContinueOffer && !mathQuiz && secondsLeft > 0) {
           timerId = setInterval(() => {
-            setSecondsLeft(prev => {
-              if (prev <= 1) {
-                clearInterval(timerId);
-                setIsGameOver(true);
-                return 0;
-              }
-              return prev - 1;
-            });
+            setSecondsLeft(prev => prev - 1);
           }, 1000);
         }
         return () => {
           if (timerId) clearInterval(timerId);
         };
-      }, [status, gameStarted, isGameOver, mathQuiz]);
+      }, [status, gameStarted, showContinueOffer, mathQuiz, secondsLeft]);
 
       // Game Over restart logic
       const handleResetToLobby = () => {
         setStudentName('');
         setGameStarted(false);
-        setIsGameOver(false);
         setShowTrophyCelebration(false);
+        setShowContinueOffer(false);
         setLevelIdx(0);
         setVariationIdx(0);
       };
@@ -1182,7 +1221,7 @@
 
       // Execute Command
       const commitMovement = () => {
-        if (status !== 'playing' || isGameOver || mathQuiz) return;
+        if (status !== 'playing' || showContinueOffer || mathQuiz) return;
 
         // Verify Continuous Translation Path to Prevent Jumping Over Barriers!
         if (activeTab === 'translate') {
@@ -1221,6 +1260,17 @@
         const updatedHistory = [...history, actionRecord];
         setHistory(updatedHistory);
         resetCommandUI();
+
+        // --- CHECK TIME BONUS TILE ---
+        if (timeBonusNode && timeBonusNode.active) {
+          const overlapsBonus = absPendingCoords.some(c => Math.floor(c.x) === timeBonusNode.x && Math.floor(c.y) === timeBonusNode.y);
+          if (overlapsBonus) {
+            setTimeBonusNode(prev => ({ ...prev, active: false }));
+            setSecondsLeft(s => s + 10);
+            setBonusAlert({ title: "⏰ +10 SECONDS!", desc: "You grabbed the time bonus!" });
+            setTimeout(() => setBonusAlert(null), 3000);
+          }
+        }
 
         // Check Win Condition
         const targetAbsCoords = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
@@ -1270,25 +1320,9 @@
         setSheetStatus('idle');
       };
 
-      const restartLevel = () => {
-        setPivot(level.startPivot);
-        setBlocks(level.startBlocks);
-        setCurrentObstacles([...level.obstacles]);
-        setStatus('playing');
-        setMessage('');
-        setHistory([]);
-        setSecondsLeft(maxTimeLimit);
-        setChallengeCompleted(false);
-        setSheetStatus('idle');
-        setMathQuiz(null);
-        setIsNarwhalActive(false);
-        narwhalSpawnedThisLevel.current = false;
-        resetCommandUI();
-      };
-
       // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
       const handleCanvasClick = (e) => {
-        if (status !== 'playing' || isGameOver || mathQuiz) return;
+        if (status !== 'playing' || showContinueOffer || mathQuiz) return;
         
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -1419,6 +1453,20 @@
           ctx.stroke();
         });
 
+        // Draw Secret Time Bonus Node
+        if (timeBonusNode && timeBonusNode.active) {
+          const { x, y, w, h } = getCellRect(timeBonusNode.x, timeBonusNode.y);
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.25)'; // Light emerald
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, w, h);
+          ctx.font = '22px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⏱️', x + w/2, y + h/2 + 2);
+        }
+
         const isMoving = pendingState.pivot.x !== pivot.x || 
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
@@ -1540,7 +1588,7 @@
            }
         }
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, tick, isNarwhalActive]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, tick, isNarwhalActive, timeBonusNode]);
 
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
@@ -1694,22 +1742,42 @@
         );
       }
 
-      // RENDER GAME OVER OR CONTINUE MODALS
-      if (isGameOver) {
+      // RENDER CONTINUE MODAL (Only when time runs out on first try)
+      if (showContinueOffer) {
         return (
-          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
+          <div className="min-h-screen w-full flex items-center justify-center bg-slate-900/90 p-4 z-50">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center flex flex-col gap-6">
-              <div className="text-5xl">⏰</div>
-              <h1 className="text-3xl font-black text-red-600">TIME'S UP!</h1>
+              <div className="text-5xl animate-pulse">⏰</div>
+              <h1 className="text-3xl font-black text-slate-800">Time's Up!</h1>
               <p className="text-slate-600 font-medium">
-                You ran out of time on this board, {studentName}.
+                You ran out of time on this puzzle, {studentName}!
               </p>
-              <button
-                onClick={handleResetToLobby}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg rounded-xl transition-all shadow-md active:scale-95"
-              >
-                Restart Game
-              </button>
+              <p className="text-sm font-bold text-purple-600">
+                You have 1 Continue available to keep your progress on this board.
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setHasContinued(true);
+                    setShowContinueOffer(false);
+                    setSecondsLeft(maxTimeLimit);
+                    setMessage("Continued! Time restored.");
+                    setTimeout(() => setMessage(''), 3000);
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl transition-all shadow-lg active:scale-95"
+                >
+                  Use Continue
+                </button>
+                <button
+                  onClick={() => {
+                    setShowContinueOffer(false);
+                    initLevelData();
+                  }}
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
+                >
+                  Give Up & Restart Level
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -1809,7 +1877,7 @@
                     <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
                       <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full">
                          <h3 className="text-xl md:text-2xl font-black text-fuchsia-600 mb-2">🐋 Narwhal Caught!</h3>
-                         <p className="text-slate-600 font-bold mb-4">Quick! Answer this to gain +1 Minute!</p>
+                         <p className="text-slate-600 font-bold mb-4">Quick! Answer this to gain bonus time!</p>
                          
                          <div className="text-4xl md:text-5xl font-black text-slate-800 mb-6 bg-slate-100 py-4 rounded-xl border border-slate-200 shadow-inner">
                             {mathQuiz.question} = ?
@@ -1832,6 +1900,14 @@
                          </div>
                          <p className="text-red-500 font-bold text-xs uppercase tracking-widest">{mathQuiz.timeLeft} Seconds Left!</p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Bonus Trigger Modal Alert */}
+                  {bonusAlert && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-950 px-6 py-3 rounded-2xl shadow-xl border-4 border-yellow-200 z-20 text-center animate-bounce">
+                      <h4 className="font-black text-lg">{bonusAlert.title}</h4>
+                      <p className="font-bold text-sm">{bonusAlert.desc}</p>
                     </div>
                   )}
 
