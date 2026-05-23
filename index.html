@@ -37,6 +37,16 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    
+    @keyframes ping-slow {
+      75%, 100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+    .animate-ping-slow {
+      animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -656,8 +666,6 @@
       for (let coord of absCoords) {
         const gridX = Math.floor(coord.x);
         const gridY = Math.floor(coord.y);
-        // We do NOT instantly return true for out of bounds here anymore, 
-        // to prevent "unfair resets" during drag/evaluation. It is handled gracefully separately.
         if (obstacles.some(obs => obs.x === gridX && obs.y === gridY)) return true;
       }
       return false;
@@ -738,6 +746,13 @@
         };
       }, [history]);
 
+      // Current Level Obstacles (Allows for dynamic clearing)
+      const [currentObstacles, setCurrentObstacles] = useState([]);
+
+      // Secret Nodes & Bonuses
+      const [secretNode, setSecretNode] = useState(null);
+      const [bonusAlert, setBonusAlert] = useState(null);
+
       // Drag State Tracker
       const [isDragging, setIsDragging] = useState(false);
 
@@ -784,6 +799,7 @@
         if (!gameStarted) return;
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
+        setCurrentObstacles([...level.obstacles]);
         setStatus('playing');
         setMessage('');
         setHistory([]);
@@ -791,7 +807,33 @@
         setChallengeCompleted(false);
         setSheetStatus('idle');
         setSelectedMirrorLineIdx(0); // Reset mirror line selector
+        setBonusAlert(null);
         resetCommandUI();
+
+        // Generate a random, valid invisible Secret Node
+        let rx, ry, attempts = 0;
+        let valid = false;
+        while (!valid && attempts < 100) {
+          rx = Math.floor(Math.random() * (GRID_W - 4)) + 2;
+          ry = Math.floor(Math.random() * (GRID_H - 4)) + 2;
+          const isObstacle = level.obstacles.some(o => o.x === rx && o.y === ry);
+          const isStart = Math.abs(level.startPivot.x - rx) < 3 && Math.abs(level.startPivot.y - ry) < 3;
+          const isTarget = Math.abs(level.targetPivot.x - rx) < 3 && Math.abs(level.targetPivot.y - ry) < 3;
+          if (!isObstacle && !isStart && !isTarget) valid = true;
+          attempts++;
+        }
+        if (valid) {
+           const types = ['time', 'life', 'clear', 'score'];
+           setSecretNode({ 
+             x: rx, 
+             y: ry, 
+             type: types[Math.floor(Math.random() * types.length)], 
+             discovered: false 
+           });
+        } else {
+           setSecretNode(null);
+        }
+
       }, [level, gameStarted, maxTimeLimit]);
 
       // Automatically select a random variation on level index swap
@@ -922,6 +964,7 @@
           setPivot(level.startPivot);
           setBlocks(level.startBlocks);
           setHistory([]);
+          setCurrentObstacles([...level.obstacles]);
           setSecondsLeft(maxTimeLimit);
           resetCommandUI();
           setStatus('playing');
@@ -964,6 +1007,7 @@
           setShowContinueOffer(false);
           setPivot(level.startPivot);
           setBlocks(level.startBlocks);
+          setCurrentObstacles([...level.obstacles]);
           setHistory([]);
           setSecondsLeft(maxTimeLimit);
           resetCommandUI();
@@ -1045,7 +1089,7 @@
 
         // Verify Continuous Translation Path to Prevent Jumping Over Barriers!
         if (activeTab === 'translate') {
-          if (checkPathCollision(pivot, pendingState.pivot, blocks, level.obstacles)) {
+          if (checkPathCollision(pivot, pendingState.pivot, blocks, currentObstacles)) {
             handleLifeLoss("Path Blocked! Your shape crashed into a solid wall mid-slide.");
             return;
           }
@@ -1066,7 +1110,7 @@
         }
 
         // Final Destination Wall Collision Check
-        if (checkCollision(absPendingCoords, level.obstacles)) {
+        if (checkCollision(absPendingCoords, currentObstacles)) {
           handleLifeLoss("Collision! Your shape landed on an obstacle.");
           return;
         }
@@ -1080,6 +1124,34 @@
         const updatedHistory = [...history, actionRecord];
         setHistory(updatedHistory);
         resetCommandUI();
+
+        // --- SECRET BONUS NODE CHECK ---
+        if (secretNode && !secretNode.discovered) {
+          const overlapsSecret = absPendingCoords.some(c => Math.floor(c.x) === secretNode.x && Math.floor(c.y) === secretNode.y);
+          if (overlapsSecret) {
+            setSecretNode(prev => ({ ...prev, discovered: true }));
+            
+            let alertMsg = "";
+            let alertTitle = "⭐ SECRET MAGIC NODE FOUND! ⭐";
+            
+            if (secretNode.type === 'time') {
+              setSecondsLeft(s => s + 30);
+              alertMsg = "TIME WARP! +30 Seconds added to the clock!";
+            } else if (secretNode.type === 'life') {
+              setLives(l => l + 1);
+              alertMsg = "1-UP! You gained an Extra Life!";
+            } else if (secretNode.type === 'clear') {
+              setCurrentObstacles([]);
+              alertMsg = "BULLDOZER! All grid obstacles have been destroyed!";
+            } else if (secretNode.type === 'score') {
+              alertMsg = "JACKPOT! Massive Bonus Score Multiplier applied!";
+              // Score is tracked via API, we just let them know they got a bonus
+            }
+
+            setBonusAlert({ title: alertTitle, desc: alertMsg });
+            setTimeout(() => setBonusAlert(null), 4000);
+          }
+        }
 
         // Check Win Condition
         const targetAbsCoords = getAbsoluteCoords(level.targetPivot, level.targetBlocks);
@@ -1131,6 +1203,7 @@
       const restartLevel = () => {
         setPivot(level.startPivot);
         setBlocks(level.startBlocks);
+        setCurrentObstacles([...level.obstacles]);
         setStatus('playing');
         setMessage('');
         setHistory([]);
@@ -1162,8 +1235,16 @@
       const handleInteractionStart = (e) => {
         if (status !== 'playing' || isGameOver || showContinueOffer) return;
         const mouseGrid = getCanvasMousePos(e);
+        
+        // Huge grab radius! 
+        // Check if mouse is near pivot OR inside any of the blocks
+        const absStart = getAbsoluteCoords(pivot, blocks);
+        const isInsideShape = absStart.some(c => 
+          Math.abs(mouseGrid.x - c.x) < 0.8 && Math.abs(mouseGrid.y - c.y) < 0.8
+        );
         const distToPivot = Math.hypot(mouseGrid.x - pivot.x, mouseGrid.y - pivot.y);
-        if (distToPivot < 0.45) {
+        
+        if (isInsideShape || distToPivot < 1.5) {
           setIsDragging(true);
           setActiveTab('translate'); 
         }
@@ -1292,7 +1373,7 @@
         ctx.setLineDash([]); 
 
         ctx.fillStyle = '#fee2e2'; 
-        level.obstacles.forEach(obs => {
+        currentObstacles.forEach(obs => {
           const { x, y, w, h } = getCellRect(obs.x, obs.y);
           ctx.fillRect(x, y, w, h);
           
@@ -1308,6 +1389,17 @@
           ctx.stroke();
         });
 
+        // Draw Secret Node if Discovered
+        if (secretNode && secretNode.discovered) {
+          const { x, y, w, h } = getCellRect(secretNode.x, secretNode.y);
+          ctx.fillStyle = 'rgba(250, 204, 21, 0.4)'; // Yellow glow
+          ctx.fillRect(x, y, w, h);
+          ctx.font = '24px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⭐', x + w/2, y + h/2 + 2);
+        }
+
         const isMoving = pendingState.pivot.x !== pivot.x || 
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
@@ -1318,7 +1410,7 @@
           // Path collision indicator for Ghost
           let pathBlocked = false;
           if (activeTab === 'translate') {
-            pathBlocked = checkPathCollision(pivot, pendingState.pivot, blocks, level.obstacles);
+            pathBlocked = checkPathCollision(pivot, pendingState.pivot, blocks, currentObstacles);
           }
           
           // Out of Bounds logic indicator for Ghost
@@ -1364,7 +1456,7 @@
         ctx.fill();
         ctx.stroke();
 
-      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab]);
+      }, [pivot, blocks, pendingState, level, status, selectedColor, gameStarted, selectedMirrorLineIdx, activeTab, currentObstacles, secretNode]);
 
       const renderCommandSentence = () => {
         if (activeTab === 'translate') {
@@ -1431,6 +1523,12 @@
         }
         return null;
       };
+
+      // Helper to calculate radar proximity to secret node
+      const distToSecret = secretNode && !secretNode.discovered 
+        ? Math.hypot(secretNode.x - pivot.x, secretNode.y - pivot.y) 
+        : 999;
+      const radarActive = distToSecret < 4.5 && status === 'playing';
 
       // RENDER LOBBY START SCREEN
       if (!gameStarted) {
@@ -1610,7 +1708,7 @@
           <div className="w-full max-w-[1200px] flex-1 min-h-0 flex flex-col lg:flex-row gap-4 items-stretch justify-center pb-2">
             
             {/* LEFT COMPONENT: Board Display Panel (Proportionally Scaled with Aspect containment) */}
-            <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden">
+            <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden relative">
               <div className="flex justify-between items-center mb-1.5 shrink-0">
                 <h2 className="text-sm md:text-base font-bold text-slate-800 truncate pr-2">
                   {level.title}
@@ -1618,6 +1716,7 @@
                 
                 {/* Timer and Statistics Tracker HUD */}
                 <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
+                  {radarActive && <span className="text-yellow-500 animate-ping-slow mr-1">📡 Node Proximity Alert!</span>}
                   <span className="text-red-500 flex items-center gap-0.5">
                     {Array.from({ length: lives }).map((_, idx) => (
                       <span key={idx}>❤️</span>
@@ -1665,6 +1764,14 @@
                     }}
                   />
                   
+                  {/* Bonus Trigger Modal Alert */}
+                  {bonusAlert && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-950 px-6 py-3 rounded-2xl shadow-xl border-4 border-yellow-200 z-20 text-center animate-bounce">
+                      <h4 className="font-black text-lg">{bonusAlert.title}</h4>
+                      <p className="font-bold text-sm">{bonusAlert.desc}</p>
+                    </div>
+                  )}
+
                   {/* Overlay messages */}
                   {status !== 'playing' && !showTrophyCelebration && (
                     <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
@@ -1928,7 +2035,7 @@
                 {/* Explainer / Hint Banner */}
                 <div className="bg-yellow-50/70 border-l-2 border-yellow-400 p-2.5 text-[11px] text-yellow-900 rounded-r-lg">
                   <p className="font-bold mb-0.5">Ghost Preview Mode Active</p>
-                  <p>Configure parameters above or <span className="font-bold">drag the red handle on the grid</span> or <span className="font-bold">use keyboard arrows</span> to test your translations before clicking Commit.</p>
+                  <p>Configure parameters above or <span className="font-bold">drag the red shape on the grid</span> or <span className="font-bold">use keyboard arrows</span> to test your translations before clicking Commit.</p>
                 </div>
 
                 {/* Primary Action Commit Dock */}
