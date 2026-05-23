@@ -144,7 +144,7 @@
         id: 'tut3',
         title: "Training Step 3: Reflection (Flip)",
         instructions: "REFLECT (flip) the shape backwards across the red dotted mirror line.",
-        challengeText: "Select the 'Vertical Line X=10' mirror and use 1 Reflection move!",
+        challengeText: "Select the 'Vertical Mirror Line' and use 1 Reflection move!",
         parMoves: 1,
         variationLabel: "Tutorial",
         checkChallenge: () => true,
@@ -1752,7 +1752,7 @@
           } else if (activeTab === 'reflect') {
               const mirror = level.mirrorLines[selectedMirrorLineIdx];
               if (mirror) {
-                  label = `Reflect ${mirror.axis === 'vertical' ? 'X=' : 'Y='}${mirror.pos}`;
+                  label = `Reflect ${mirror.axis === 'vertical' ? 'Vertical' : 'Horizontal'} Mirror`;
               }
           }
 
@@ -1859,7 +1859,7 @@
               >
                 {level.mirrorLines && level.mirrorLines.map((m, i) => (
                   <option key={i} value={i}>
-                    {m.axis === 'vertical' ? `Vertical Line X=${m.pos}` : `Horizontal Line Y=${m.pos}`}
+                    {m.axis === 'vertical' ? `Vertical Mirror Line` : `Horizontal Mirror Line`}
                   </option>
                 ))}
               </select>
@@ -2035,7 +2035,7 @@
                     Training Course: Step {tutorialStep}/4
                   </span>
               ) : (
-                  LEVEL_VARIATIONS.map((_, i) => (
+                  BOUND_LEVEL_VARIATIONS.map((_, i) => (
                     <button 
                       key={i} 
                       onClick={() => {
