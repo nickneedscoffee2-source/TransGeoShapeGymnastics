@@ -40,19 +40,30 @@
     }
     
     @keyframes ping-slow {
-      75%, 100% { transform: scale(1.5); opacity: 0; }
+      75%, 100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
     }
     .animate-ping-slow {
       animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-    
-    /* Neon glow effect for unignorable challenge text */
+
+    /* Pulsing violet glow to make the challenge box stand out */
     @keyframes glow-pulse {
       0%, 100% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.5); transform: scale(1); }
       50% { box-shadow: 0 0 25px rgba(168, 85, 247, 1); border-color: rgba(168, 85, 247, 1); transform: scale(1.02); }
     }
     .animate-glow-pulse {
       animation: glow-pulse 1.8s ease-in-out infinite;
+    }
+    
+    @keyframes fade-in {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.2s ease-out forwards;
     }
   </style>
 </head>
@@ -65,7 +76,6 @@
     const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
     // --- GOOGLE SHEETS INTEGRATION CONFIG ---
-    // User configured Apps Script Endpoint
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxASjy1KnWewCGhNvy6N3h8luYtPunzd1gk5NYx8e7au_vmG6PuXsrnYJWCtL2gMRWJ/exec"; 
 
     // --- GAME GRID CONSTANTS ---
@@ -107,7 +117,7 @@
 
     // --- TUTORIAL PROGRESSION LEVELS ---
     const TUTORIAL_LEVELS = [
-      null, // Index 0 is standard arena, ignored here
+      null, 
       {
         id: 'tut1',
         title: "Training Step 1: Translation (Slide)",
@@ -135,7 +145,7 @@
         startPivot: { x: 10, y: 7 },
         startBlocks: [...INITIAL_BLOCKS],
         targetPivot: { x: 10, y: 7 },
-        targetBlocks: [...FLIPPED_ROTATED_BLOCKS], // 180 deg
+        targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
         mirrorLines: [],
         obstacles: [],
         allowedMoves: { translate: 0, rotate: 1, reflect: 0 }
@@ -151,8 +161,8 @@
         startPivot: { x: 5, y: 7 },
         startBlocks: [...INITIAL_BLOCKS],
         targetPivot: { x: 15, y: 7 },
-        targetBlocks: [...FLIP_X_BLOCKS], // Flipped over X
-        mirrorLines: [{ axis: 'vertical', pos: 10 }], // Render the mirror line visibly
+        targetBlocks: [...FLIP_X_BLOCKS], 
+        mirrorLines: [{ axis: 'vertical', pos: 10 }], 
         obstacles: [],
         allowedMoves: { translate: 0, rotate: 0, reflect: 1 }
       },
@@ -179,9 +189,9 @@
       }
     ];
 
-    // --- BASE 30 UNIQUE PUZZLE VARIATIONS WITH SECURE GRID BOUNDS ---
+    // --- BASE 30 UNIQUE PUZZLE VARIATIONS ---
     const BASE_LEVEL_VARIATIONS = [
-      // --- LEVEL 1: BASIC TRANSLATION ---
+      // --- LEVEL 1: BASIC TRANSLATION (5 Variations) ---
       [
         {
           id: 1,
@@ -196,7 +206,7 @@
           targetPivot: { x: 16, y: 3 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 3) // Widened gap for diagonal traversal
+          obstacles: buildWall('x', 10, 0, 4)
         },
         {
           id: 1,
@@ -211,7 +221,7 @@
           targetPivot: { x: 3, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 11, 14) // Widened gap
+          obstacles: buildWall('x', 10, 10, 14)
         },
         {
           id: 1,
@@ -241,7 +251,6 @@
           targetPivot: { x: 15, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Massively widened middle gap so diagonal drag/movement doesn't corner-clip
           obstacles: [...buildWall('x', 9, 0, 3), ...buildWall('x', 9, 11, 14)] 
         },
         {
@@ -257,7 +266,7 @@
           targetPivot: { x: 3, y: 10 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 5) // Widened gap
+          obstacles: buildWall('x', 10, 0, 5) 
         }
       ],
 
@@ -280,7 +289,6 @@
           targetPivot: { x: 3, y: 7 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened middle gap
           obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
@@ -300,8 +308,7 @@
           targetPivot: { x: 10, y: 4 }, 
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gap
-          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)]
+          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 13, 19)]
         },
         {
           id: 2,
@@ -324,7 +331,7 @@
         },
         {
           id: 2,
-          title: "Level 2 (Var D): The Split Chimney (Right Start)",
+          title: "Level 2 (Var D): The Split Chimney",
           instructions: "Position and rotate the piece vertically to pass through the high gate.",
           challengeText: "Target exactly 1 Rotation and at most 2 Translations!",
           parMoves: 3,
@@ -339,7 +346,7 @@
           targetPivot: { x: 3, y: 11 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 6) // Widened gap
+          obstacles: buildWall('x', 10, 0, 6)
         },
         {
           id: 2,
@@ -358,7 +365,7 @@
           targetPivot: { x: 16, y: 4 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 6) // Widened gap
+          obstacles: buildWall('x', 10, 0, 6) 
         }
       ],
 
@@ -381,7 +388,7 @@
           targetPivot: { x: 14, y: 10 },
           targetBlocks: [...FLIP_X_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }],
-          obstacles: buildWall('x', 10, 0, 14) // Blocks translation, forces reflection
+          obstacles: buildWall('x', 10, 0, 14)
         },
         {
           id: 3,
@@ -438,7 +445,7 @@
           targetPivot: { x: 10, y: 11 },
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'horizontal', pos: 7 }, { axis: 'vertical', pos: 10 }],
-          obstacles: buildWall('y', 7, 0, 19)
+          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)] 
         },
         {
           id: 3,
@@ -481,8 +488,7 @@
           targetPivot: { x: 16, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
         },
         {
           id: 4,
@@ -502,8 +508,7 @@
           targetPivot: { x: 16, y: 5 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps
-          obstacles: [...buildWall('y', 8, 0, 5), ...buildWall('y', 8, 14, 19)]
+          obstacles: [...buildWall('y', 8, 0, 5), ...buildWall('y', 8, 14, 19)] 
         },
         {
           id: 4,
@@ -523,8 +528,7 @@
           targetPivot: { x: 15, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
         },
         {
           id: 4,
@@ -544,8 +548,7 @@
           targetPivot: { x: 4, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
         },
         {
           id: 4,
@@ -565,8 +568,7 @@
           targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
         }
       ],
 
@@ -728,10 +730,9 @@
           },
           startPivot: { x: 4, y: 8 },
           startBlocks: [...INITIAL_BLOCKS],
-          targetPivot: { x: 15, y: 4 }, // Shifted from y:8 to avoid clipping y:7 wall
+          targetPivot: { x: 15, y: 4 }, 
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          // Widened gaps drastically
           obstacles: [
             ...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14),
             ...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)
@@ -784,6 +785,13 @@
       { name: 'Vibrant Purple', fill: 'rgba(139, 92, 246, 0.8)', border: '#6d28d9' },
       { name: 'Pink Magenta', fill: 'rgba(236, 72, 153, 0.8)', border: '#be185d' },
     ];
+
+    // Strict tab translation key mapping to resolve rotation/reflection letter 'r' collision bug
+    const tabToKey = {
+      translate: 't',
+      rotate: 'r',
+      reflect: 'f'
+    };
 
     // -- GLOBAL NUMBER SELECT COMPONENT --
     const NumberSelect = ({ value, onChange, max }) => (
@@ -851,9 +859,10 @@
       const [tutorialStep, setTutorialStep] = useState(0); 
       const [narwhalUnlocked, setNarwhalUnlocked] = useState(false);
 
-      // Track Continues
+      // Track Continues and Exits
       const [hasContinued, setHasContinued] = useState(false);
       const [showContinueOffer, setShowContinueOffer] = useState(false);
+      const [showExitConfirmation, setShowExitConfirmation] = useState(false); // NEW STATE
 
       // Game Over States
       const [isGameOver, setIsGameOver] = useState(false);
@@ -941,17 +950,17 @@
         if (tutorialStep === 3) setActiveTab('reflect');
       }, [tutorialStep]);
 
-      // Ensure we switch to a valid tab if the current one is exhausted
+      // Ensure we switch to a valid tab if the current one is exhausted using robust tabToKey mapping
       useEffect(() => {
         if (!level.allowedMoves) return;
         const currentLimit = level.allowedMoves[activeTab];
-        const currentUsed = moveTally[activeTab.charAt(0)];
+        const currentUsed = moveTally[tabToKey[activeTab]];
         
         if (currentUsed >= currentLimit) {
             const tabs = ['translate', 'rotate', 'reflect'];
             const nextTab = tabs.find(t => {
                  const l = level.allowedMoves ? level.allowedMoves[t] : 99;
-                 const u = moveTally[t.charAt(0)];
+                 const u = moveTally[tabToKey[t]];
                  const tutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== tabs.indexOf(t) + 1;
                  return u < l && !tutLocked;
             });
@@ -963,6 +972,7 @@
         setTransDistX(0);
         setTransDistY(0);
         setRotAngle('90');
+        setSelectedMirrorLineIdx(0);
       }
 
       const initLevelData = useCallback(() => {
@@ -1195,7 +1205,7 @@
         const tabs = ['translate', 'rotate', 'reflect'];
         const availableTabs = tabs.filter(t => {
             const limit = level.allowedMoves ? level.allowedMoves[t] : 99;
-            const used = moveTally[t.charAt(0)];
+            const used = moveTally[tabToKey[t]];
             const tutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== tabs.indexOf(t) + 1;
             return used < limit && !tutLocked;
         });
@@ -1234,7 +1244,7 @@
       // --- UNIVERSAL KEYBOARD CONTROLS ---
       useEffect(() => {
         function handleKeyDown(e) {
-          if (showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
+          if (showContinueOffer || showExitConfirmation || mathQuiz || isGameOver || showTutorial) return;
           
           // Ignore if user is typing in a native HTML text field
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1252,7 +1262,7 @@
           
           if (status !== 'playing') return;
 
-          // Global Left Shift to toggle Tabs
+          // Global Left Shift to toggle Tabs safely
           if (e.code === 'ShiftLeft' || (e.key === 'Shift' && e.location === 1)) {
               e.preventDefault();
               if (toggleTabsRef.current) toggleTabsRef.current();
@@ -1323,7 +1333,7 @@
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [status, showContinueOffer, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz, isGameOver, showTutorial]);
+      }, [status, showContinueOffer, showExitConfirmation, activeTab, transDistX, transDirX, transDistY, transDirY, rotAngle, selectedMirrorLineIdx, pivot, blocks, level.mirrorLines, mathQuiz, isGameOver, showTutorial]);
 
       function handleCrash(reasonMessage) {
         setPivot(level.startPivot);
@@ -1391,6 +1401,7 @@
         setIsGameOver(false);
         setShowTrophyCelebration(false);
         setShowContinueOffer(false);
+        setShowExitConfirmation(false); // Make sure to close modal on reset
         setLevelIdx(0);
         setVariationIdx(0);
         setTutorialStep(0);
@@ -1448,7 +1459,7 @@
       }
 
       function commitMovement() {
-        if (status !== 'playing' || isGameOver || showContinueOffer || mathQuiz || showTutorial) return;
+        if (status !== 'playing' || isGameOver || showContinueOffer || showExitConfirmation || mathQuiz || showTutorial) return;
 
         if (activeTab === 'translate') {
           if (checkPathCollision(pivot, pendingState.pivot, blocks, currentObstacles)) {
@@ -1556,7 +1567,7 @@
 
       // --- MOUSE & TOUCH INTERACTION ON CANVAS (Click detection ONLY for Narwhal) ---
       function handleCanvasClick(e) {
-        if (status !== 'playing' || showContinueOffer || mathQuiz || isGameOver || showTutorial) return;
+        if (status !== 'playing' || showContinueOffer || showExitConfirmation || mathQuiz || isGameOver || showTutorial) return;
         
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -1761,7 +1772,7 @@
           } else if (activeTab === 'reflect') {
               const mirror = level.mirrorLines[selectedMirrorLineIdx];
               if (mirror) {
-                  label = `Reflect ${mirror.axis === 'vertical' ? 'Vertical' : 'Horizontal'} Mirror`;
+                  label = `Reflect ${mirror.axis === 'vertical' ? 'Vertical' : 'Horizontal'} Mirror Line`;
               }
           }
 
@@ -1906,7 +1917,6 @@
                   />
                 </div>
 
-                {/* Difficulty Selector Form Field */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Select Difficulty</label>
                   <div className="grid grid-cols-2 gap-2">
@@ -1992,7 +2002,7 @@
         );
       }
 
-      // RENDER CONTINUE MODAL (Only when time runs out on first try)
+      // RENDER CONTINUE MODAL
       if (showContinueOffer) {
         return (
           <div className="min-h-screen w-full flex items-center justify-center bg-slate-900/90 p-4 z-50">
@@ -2026,8 +2036,38 @@
 
       // RENDER GAMEPLAY
       return (
-        <div className="h-screen w-full bg-gray-100 p-4 flex flex-col items-center justify-between overflow-hidden">
+        <div className="h-screen w-full bg-gray-100 p-4 flex flex-col items-center justify-between overflow-hidden relative">
           
+          {/* RENDER EXIT CONFIRMATION MODAL */}
+          {showExitConfirmation && (
+            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-slate-100 animate-fade-in text-slate-800">
+                <div className="text-4xl mb-2">🚪</div>
+                <h3 className="text-xl font-black text-slate-800">Return to Menu?</h3>
+                <p className="text-sm text-slate-500 mt-2 mb-6">
+                  Are you sure you want to quit and return to the main menu? Your current puzzle progress will be lost.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowExitConfirmation(false);
+                      handleResetToLobby();
+                    }}
+                    className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    Yes, Quit
+                  </button>
+                  <button
+                    onClick={() => setShowExitConfirmation(false)}
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all"
+                  >
+                    No, Stay
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header Panel */}
           <div className="w-full max-w-[1200px] flex flex-col md:flex-row justify-between items-start md:items-end gap-2 shrink-0 pb-1 border-b">
             <div>
@@ -2066,10 +2106,10 @@
             </div>
           </div>
 
-          {/* Main Box Area (Flex height-bound to fit the screen without scrolling) */}
+          {/* Main Box Area */}
           <div className="w-full max-w-[1200px] flex-1 min-h-0 flex flex-col lg:flex-row gap-4 items-stretch justify-center pb-2">
             
-            {/* LEFT COMPONENT: Board Display Panel (Proportionally Scaled with Aspect containment) */}
+            {/* LEFT COMPONENT: Board Display Panel */}
             <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden relative">
               
               <div className="flex flex-col mb-1.5 shrink-0">
@@ -2078,7 +2118,6 @@
                       {level.title}
                     </h2>
                     
-                    {/* Simplified Stats Tracker HUD - No Lives */}
                     <div className="flex items-center gap-2 text-[11px] font-mono font-bold bg-slate-50 border px-2 py-1 rounded">
                       <span className="text-slate-500">👟 {moveTally.total} Moves</span>
                       <span className="text-slate-300">|</span>
@@ -2088,7 +2127,6 @@
                     </div>
                  </div>
 
-                 {/* Shrinking Animated Time Bar */}
                  {maxTimeLimit !== null && (
                    <div className="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden shadow-inner">
                      <div className={`h-2.5 rounded-full transition-all duration-1000 ease-linear ${secondsLeft < 15 ? 'bg-red-500 animate-pulse' : secondsLeft < 30 ? 'bg-yellow-400' : 'bg-emerald-500'}`} style={{ width: `${Math.max(0, (secondsLeft / maxTimeLimit) * 100)}%` }}></div>
@@ -2096,24 +2134,23 @@
                  )}
               </div>
               
-              {/* This container dynamically holds the aspect-constrained canvas */}
               <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden bg-slate-50 rounded-lg p-2 relative">
                 
-                {/* Catch the Narwhal Alert for Training Mode */}
                 {isNarwhalActive && difficulty === 'training' && !mathQuiz && (
                   <div className="absolute top-8 left-1/2 -translate-x-1/2 font-black text-lg md:text-2xl text-fuchsia-600 animate-bounce bg-white/95 px-6 py-2 rounded-2xl shadow-xl border-2 border-fuchsia-300 pointer-events-none z-20">
                       🐋 Catch The Narwhal!
                   </div>
                 )}
 
+                {/* Sized perfectly using aspect-ratio so it dynamically fits both width and height constraints of the screen */}
                 <div 
                   className="relative border border-gray-300 rounded-lg overflow-hidden bg-white shadow-inner"
                   style={{
+                    aspectRatio: '20/15',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
                     width: '100%',
-                    height: '100%',
-                    maxWidth: `${CANVAS_WIDTH}px`,
-                    maxHeight: `${CANVAS_HEIGHT}px`,
-                    aspectRatio: '20/15'
+                    height: 'auto'
                   }}
                 >
                   <canvas 
@@ -2124,12 +2161,10 @@
                       width: '100%',
                       height: '100%',
                       display: 'block',
-                      cursor: isNarwhalActive ? 'crosshair' : 'default',
-                      objectFit: 'contain'
+                      cursor: isNarwhalActive ? 'crosshair' : 'default'
                     }}
                   />
                   
-                  {/* MATH QUIZ MODAL FOR NARWHAL */}
                   {mathQuiz && (
                     <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
                       <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full">
@@ -2160,7 +2195,6 @@
                     </div>
                   )}
 
-                  {/* Bonus Trigger Modal Alert */}
                   {bonusAlert && (
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-950 px-6 py-3 rounded-2xl shadow-xl border-4 border-yellow-200 z-20 text-center animate-bounce">
                       <h4 className="font-black text-lg">{bonusAlert.title}</h4>
@@ -2168,7 +2202,6 @@
                     </div>
                   )}
 
-                  {/* Overlay messages */}
                   {status !== 'playing' && !showTrophyCelebration && (
                     <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
                       <h3 className={`text-2xl md:text-3xl font-black mb-1 md:mb-2 ${status === 'won' ? 'text-green-600' : 'text-red-600'}`}>
@@ -2192,7 +2225,6 @@
                             )}
                           </div>
                           
-                          {/* Live sheets synchronization logger state */}
                           <div className="border-t pt-1.5 text-[10px] md:text-xs">
                             {sheetStatus === 'sending' && <span className="text-blue-500 animate-pulse font-bold">Logging score to classroom spreadsheet...</span>}
                             {sheetStatus === 'success' && <span className="text-emerald-600 font-bold">✅ Progress Logged to Class Scoreboard!</span>}
@@ -2206,7 +2238,7 @@
                           <button onClick={handleNextLevel} 
                             className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white shadow font-bold text-xs md:text-sm rounded-lg transition-transform hover:scale-105"
                           >
-                            {tutorialStep > 0 ? (tutorialStep === 4 ? "Start Arena!" : "Next Tutorial") : "Next Level"}
+                            {tutorialStep > 0 ? (tutorialStep === 4 ? "Start Arena!" : "Next Tutorial") : (levelIdx === 5 ? "View Rewards!" : "Next Level")}
                           </button>
                         )}
                         {status === 'crashed' && (
@@ -2221,123 +2253,111 @@
                     </div>
                   )}
 
-                  {/* DYNAMIC MARIO KART STYLE CELEBRATION */}
                   {showTrophyCelebration && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 text-center text-white select-none z-10 overflow-y-auto">
                       
-                      {/* Expert Champion vs Magical Narwhal Champion Cup */}
-                      {difficulty === 'narwhal' ? (
-                        <div className="relative mb-3 animate-pulse">
-                          {/* Beautiful Animated SVG Happy Narwhal holding trophy */}
-                          <svg className="w-40 h-40 md:w-56 md:h-56 drop-shadow-[0_0_35px_rgba(236,72,153,0.8)]" viewBox="0 0 120 120">
-                            {/* Water Bubbles */}
-                            <circle cx="20" cy="30" r="3" fill="#38bdf8" className="animate-bounce" />
-                            <circle cx="100" cy="40" r="4" fill="#38bdf8" className="animate-bounce" style={{animationDelay: '0.3s'}} />
-                            <circle cx="50" cy="15" r="2" fill="#38bdf8" className="animate-bounce" style={{animationDelay: '0.6s'}} />
+                      {/* Check if they specifically completed the Bonus Gauntlet Stage */}
+                      {levelIdx === 5 ? (
+                        <div className="flex flex-col items-center max-w-lg">
+                          <div className="relative mb-3 animate-bounce">
+                            {/* Unlocked Custom Colors Paintbrush & Paint Palette Graphic */}
+                            <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_25px_rgba(168,85,247,0.8)]" viewBox="0 0 100 100">
+                              <ellipse cx="45" cy="55" rx="35" ry="25" fill="#f59e0b" stroke="#d97706" strokeWidth="2" />
+                              <circle cx="25" cy="48" r="7" fill="#ef4444" />
+                              <circle cx="40" cy="42" r="7" fill="#3b82f6" />
+                              <circle cx="60" cy="48" r="7" fill="#10b981" />
+                              <circle cx="48" cy="65" r="7" fill="#ec4899" />
+                              <circle cx="68" cy="62" r="5" fill="#8b5cf6" />
+                              {/* Thumbhole */}
+                              <ellipse cx="28" cy="65" rx="6" ry="8" fill="#1e1b4b" />
+                              {/* Brush */}
+                              <path d="M 65,25 L 85,5 M 70,20 L 76,26 L 85,17 C 88,14 88,10 85,7 Z" stroke="#e2e8f0" strokeWidth="3" fill="none" />
+                              <path d="M 75,15 L 85,5 L 80,10 Z" fill="#3b82f6" />
+                            </svg>
+                            <div className="absolute top-0 right-0 bg-gradient-to-r from-pink-500 to-violet-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full rotate-12 shadow animate-bounce">
+                              🎨 CUSTOM COLORS UNLOCKED
+                            </div>
+                          </div>
 
-                            {/* Narwhal Horn (Golden Spiral Tusk) */}
-                            <polygon points="35,50 15,30 30,45" fill="#facc15" stroke="#fbbf24" strokeWidth="1" />
-                            
-                            {/* Narwhal Body */}
-                            <path d="M 30 70 Q 50 40 85 55 T 115 65 Q 110 75 95 72 T 65 75 Q 45 85 30 70 Z" fill="#818cf8" stroke="#4f46e5" strokeWidth="2" />
-                            
-                            {/* Tail Fin */}
-                            <path d="M 115 65 L 122 55 L 120 67 L 123 75 Z" fill="#818cf8" stroke="#4f46e5" strokeWidth="1.5" />
-                            
-                            {/* Friendly Eye and Smile */}
-                            <circle cx="45" cy="60" r="3" fill="#0f172a" />
-                            <path d="M 42 66 Q 45 70 48 66" fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
-                            
-                            {/* Little Flippers (Arms) Holding Trophy */}
-                            <path d="M 58 72 Q 52 82 62 82 Z" fill="#6366f1" />
-                            
-                            {/* Shiny Gold Trophy Cup held by Narwhal */}
-                            <g transform="translate(58, 64) scale(0.35)">
-                              <path d="M20,25 C5,25 5,45 20,55 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                              <path d="M80,25 C95,25 95,45 80,55 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                              <path d="M25,20 L75,20 L70,55 C70,68 30,68 30,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="3" />
-                              <rect x="44" y="62" width="12" height="18" fill="#f59e0b" />
-                              <ellipse cx="50" cy="80" rx="25" ry="8" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                            </g>
-                          </svg>
-                          <div className="absolute top-0 right-0 bg-fuchsia-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full rotate-12 shadow animate-bounce">
-                            🐋 NARWHAL MASTER
+                          <h3 className="font-black tracking-wide text-2xl md:text-3xl text-purple-400 mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+                            🌈 BONUS GAUNTLET COMPLETED! 🌈
+                          </h3>
+                          <p className="text-sm md:text-base font-bold mb-3 text-slate-200">
+                            Amazing job, {studentName}! You successfully conquered the final Bonus Stage!
+                          </p>
+                          <p className="text-xs text-slate-300 mb-5 max-w-sm leading-relaxed">
+                            You have proved your geometric transformation expertise. The custom shape color customized tray is now fully unlocked! Pick your favorite color at the console!
+                          </p>
+                          
+                          {/* Quick Stage Select Box */}
+                          <div className="bg-indigo-950/60 p-4 rounded-xl border border-indigo-900/60 w-full mb-5 text-center">
+                            <span className="text-[10px] text-indigo-300 font-extrabold uppercase tracking-wider block mb-2">Select Another Stage to Replay</span>
+                            <div className="grid grid-cols-5 gap-1.5">
+                              {[1, 2, 3, 4, 5].map((lvl, idx) => (
+                                <button
+                                  key={lvl}
+                                  onClick={() => {
+                                    setLevelIdx(idx);
+                                    setShowTrophyCelebration(false);
+                                  }}
+                                  className="py-1.5 bg-indigo-900/80 hover:bg-indigo-700 text-white font-black text-xs rounded-lg transition-transform active:scale-95 shadow border border-indigo-800"
+                                >
+                                  Lvl {lvl}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : difficulty === 'expert' ? (
-                        <div className="relative mb-3 animate-pulse">
-                          <svg className="w-36 h-36 md:w-48 md:h-48 drop-shadow-[0_0_35px_rgba(251,191,36,1)]" viewBox="0 0 100 100">
-                            {/* Star Sparkles */}
-                            <path d="M10,25 L15,20 L20,25 L15,30 Z" fill="#fff" className="animate-ping" />
-                            <path d="M80,20 L85,15 L90,20 L85,25 Z" fill="#fff" className="animate-ping" style={{animationDelay: '0.5s'}} />
-                            <path d="M45,10 L50,5 L55,10 L50,15 Z" fill="#fff" className="animate-ping" style={{animationDelay: '1s'}} />
-                            
-                            {/* Grand Double Handles */}
-                            <path d="M20,25 C5,25 5,45 20,55 Z" fill="#b45309" stroke="#fbbf24" strokeWidth="3" />
-                            <path d="M80,25 C95,25 95,45 80,55 Z" fill="#b45309" stroke="#fbbf24" strokeWidth="3" />
-                            
-                            {/* Giant Trophy Cup */}
-                            <path d="M25,20 L75,20 L70,55 C70,68 30,68 30,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="3" />
-                            <rect x="44" y="62" width="12" height="18" fill="#f59e0b" />
-                            <ellipse cx="50" cy="80" rx="25" ry="8" fill="#fbbf24" stroke="#f59e0b" strokeWidth="3" />
-                            
-                            {/* Expert Champion Medal on Cup */}
-                            <path d="M50,30 L55,38 L65,39 L57,46 L60,55 L50,50 L40,55 L43,46 L35,39 L45,38 Z" fill="#ef4444" stroke="#fff" strokeWidth="1" />
-                          </svg>
-                          <div className="absolute top-0 right-0 bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full rotate-12 shadow animate-bounce">
-                            EXPERT CHAMPION
-                          </div>
+                          
+                          <button 
+                            onClick={handleResetToLobby} 
+                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
+                          >
+                            🔙 Back to Main Menu
+                          </button>
                         </div>
                       ) : (
-                        <div className="relative mb-3 animate-bounce">
-                          <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
-                            <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
-                            <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
-                            <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                            <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
-                            <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                            <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
-                            <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
-                            <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
-                          </svg>
+                        <div className="flex flex-col items-center">
+                          <div className="relative mb-3 animate-bounce">
+                            <svg className="w-24 h-24 md:w-32 md:h-32 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" viewBox="0 0 100 100">
+                              <path d="M15,20 L20,15 L25,20 L20,25 Z" fill="#fef08a" />
+                              <path d="M80,15 L85,10 L90,15 L85,20 Z" fill="#fef08a" />
+                              <path d="M25,30 C15,30 15,45 25,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                              <path d="M75,30 C85,30 85,45 75,50 Z" fill="#d97706" stroke="#fbbf24" strokeWidth="2" />
+                              <path d="M30,25 L70,25 L65,55 C65,65 35,65 35,55 Z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                              <rect x="45" y="60" width="10" height="15" fill="#f59e0b" />
+                              <ellipse cx="50" cy="78" rx="20" ry="6" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
+                              <path d="M50,33 L53,40 L60,41 L55,46 L57,53 L50,49 L43,53 L45,46 L40,41 L47,40 Z" fill="#fff" />
+                            </svg>
+                          </div>
+
+                          <h3 className={`font-black tracking-wide mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] text-2xl md:text-3xl text-amber-400`}>
+                            CONGRATULATIONS!
+                          </h3>
+                          <p className="text-sm md:text-lg font-bold mb-1">
+                            You conquered all 5 core levels, {studentName}!
+                          </p>
+                          <p className="text-[10px] md:text-xs text-slate-300 max-w-sm mb-4">
+                            Ready to tackle the ultimate challenge to unlock custom figure coloring?
+                          </p>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setLevelIdx(5); 
+                                setShowTrophyCelebration(false);
+                              }} 
+                              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
+                            >
+                              🚀 Enter the Bonus Level
+                            </button>
+                            <button 
+                              onClick={handleResetToLobby} 
+                              className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
+                            >
+                              🔙 Back to Menu
+                            </button>
+                          </div>
                         </div>
                       )}
-
-                      <h3 className={`font-black tracking-wide mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] ${difficulty === 'narwhal' ? 'text-2xl md:text-4xl text-fuchsia-400 animate-bounce' : difficulty === 'expert' ? 'text-3xl md:text-5xl text-yellow-400 animate-pulse' : 'text-2xl md:text-3xl text-amber-400'}`}>
-                        {difficulty === 'narwhal' ? 'You Are The Champion Of The Great Lakes! 🌊' : difficulty === 'expert' ? '🏆 EXPERT CHAMPION! 🏆' : 'CONGRATULATIONS!'}
-                      </h3>
-                      <p className="text-sm md:text-lg font-bold mb-1">
-                        {difficulty === 'narwhal' ? `Simply outstanding, ${studentName}! You conquered the legendary 15-second limits!` : difficulty === 'expert' ? `Expert Mode Cleared! You unlocked a mystical new challenge on the Lobby start screen!` : `You conquered all 5 core levels, ${studentName}!`}
-                      </p>
-                      <p className="text-[10px] md:text-xs text-slate-300 max-w-sm mb-4">
-                        {difficulty === 'narwhal' ? "You have achieved perfect transformation fluency. The Great Lakes salute your genius!" : difficulty === 'expert' ? "Head back to the start screen to select the locked '🐋 Magical Narwhal' difficulty!" : "Ready to tackle the ultimate challenge to unlock custom figure coloring?"}
-                      </p>
-                      <div className="flex gap-2">
-                        {difficulty === 'expert' ? (
-                          <button 
-                            onClick={handleResetToLobby}
-                            className="px-5 py-2.5 bg-gradient-to-r from-fuchsia-500 to-indigo-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                          >
-                            🐋 Play Magical Narwhal Mode!
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => {
-                              setLevelIdx(5); 
-                              setShowTrophyCelebration(false);
-                            }} 
-                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                          >
-                            🚀 Enter the Bonus Level
-                          </button>
-                        )}
-                        <button 
-                          onClick={handleResetToLobby} 
-                          className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                        >
-                          🔙 Back to Menu
-                        </button>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -2362,7 +2382,7 @@
               {/* Main Action Tabs */}
               <div className="flex bg-slate-100 border-b shrink-0">
                 {['translate', 'rotate', 'reflect'].map((tab, idx) => {
-                  const usedMoves = moveTally[tab.charAt(0)];
+                  const usedMoves = moveTally[tabToKey[tab]];
                   const moveLimit = level.allowedMoves ? level.allowedMoves[tab] : 99;
                   const isExhausted = usedMoves >= moveLimit;
                   const isTutLocked = tutorialStep > 0 && tutorialStep < 4 && tutorialStep !== (idx + 1);
@@ -2468,14 +2488,22 @@
                       Undo Step
                     </button>
                     <button 
-                      onClick={rerollVariation}
-                      disabled={tutorialStep > 0}
-                      className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-700 font-bold text-xs rounded-lg transition-colors border border-emerald-200"
-                      title="Load another randomized puzzle for this level"
+                      onClick={tutorialStep > 0 ? restartLevel : rerollVariation}
+                      className={`flex-1 py-2 font-bold text-xs rounded-lg transition-colors border ${tutorialStep > 0 ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300 animate-pulse' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200 disabled:opacity-50'}`}
+                      title={tutorialStep > 0 ? "Start this level over" : "Load another randomized puzzle for this level"}
                     >
-                      🔄 Reroll Puzzle
+                      {tutorialStep > 0 ? "🔄 Start Over" : "🔄 Reroll Puzzle"}
                     </button>
                   </div>
+
+                  {/* Return to Main Menu with explicit pop-up safety confirm modal wrapper */}
+                  <button 
+                    onClick={() => setShowExitConfirmation(true)}
+                    className="w-full py-2 mt-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs rounded-lg transition-colors"
+                    title="Quit and return to the main menu lobby"
+                  >
+                    🚪 Return to Main Menu
+                  </button>
                 </div>
 
               </div>
