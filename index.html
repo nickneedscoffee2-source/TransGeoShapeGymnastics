@@ -251,6 +251,7 @@
           targetPivot: { x: 15, y: 11 },
           targetBlocks: [...INITIAL_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          // Massively widened middle gap so diagonal drag/movement doesn't corner-clip
           obstacles: [...buildWall('x', 9, 0, 3), ...buildWall('x', 9, 11, 14)] 
         },
         {
@@ -289,6 +290,7 @@
           targetPivot: { x: 3, y: 7 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          // Widened middle gap
           obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
@@ -308,6 +310,7 @@
           targetPivot: { x: 10, y: 4 }, 
           targetBlocks: [{x:-0.5, y:-0.5},{x:-1.5, y:-0.5},{x:-2.5, y:-0.5},{x:-0.5, y:-1.5},{x:-0.5, y:-2.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
+          // Widened gap
           obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 13, 19)]
         },
         {
@@ -346,7 +349,7 @@
           targetPivot: { x: 3, y: 11 },
           targetBlocks: [{x:0.5, y:-0.5},{x:0.5, y:-1.5},{x:0.5, y:-2.5},{x:1.5, y:-0.5},{x:2.5, y:-0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 6)
+          obstacles: buildWall('x', 10, 0, 6) // Widened gap
         },
         {
           id: 2,
@@ -365,7 +368,7 @@
           targetPivot: { x: 16, y: 4 },
           targetBlocks: [{x:-0.5, y:0.5},{x:-0.5, y:1.5},{x:-0.5, y:2.5},{x:-1.5, y:0.5},{x:-2.5, y:0.5}],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: buildWall('x', 10, 0, 6) 
+          obstacles: buildWall('x', 10, 0, 6) // Widened gap
         }
       ],
 
@@ -445,7 +448,7 @@
           targetPivot: { x: 10, y: 11 },
           targetBlocks: [...FLIP_Y_BLOCKS],
           mirrorLines: [{ axis: 'horizontal', pos: 7 }, { axis: 'vertical', pos: 10 }],
-          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)] 
+          obstacles: [...buildWall('y', 7, 0, 5), ...buildWall('y', 7, 14, 19)] // Widened gaps
         },
         {
           id: 3,
@@ -488,7 +491,8 @@
           targetPivot: { x: 16, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS], 
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -508,7 +512,8 @@
           targetPivot: { x: 16, y: 5 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('y', 8, 0, 5), ...buildWall('y', 8, 14, 19)] 
+          // Widened gaps
+          obstacles: [...buildWall('y', 8, 0, 5), ...buildWall('y', 8, 14, 19)]
         },
         {
           id: 4,
@@ -528,7 +533,8 @@
           targetPivot: { x: 15, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -548,7 +554,8 @@
           targetPivot: { x: 4, y: 10 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         },
         {
           id: 4,
@@ -568,7 +575,8 @@
           targetPivot: { x: 4, y: 4 },
           targetBlocks: [...FLIPPED_ROTATED_BLOCKS],
           mirrorLines: [{ axis: 'vertical', pos: 10 }, { axis: 'horizontal', pos: 7 }],
-          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)] 
+          // Widened gaps
+          obstacles: [...buildWall('x', 10, 0, 3), ...buildWall('x', 10, 11, 14)]
         }
       ],
 
@@ -786,23 +794,12 @@
       { name: 'Pink Magenta', fill: 'rgba(236, 72, 153, 0.8)', border: '#be185d' },
     ];
 
-    // Strict tab translation key mapping to resolve rotation/reflection letter 'r' collision bug
+    // Strict tab translation key mapping
     const tabToKey = {
       translate: 't',
       rotate: 'r',
       reflect: 'f'
     };
-
-    // -- GLOBAL NUMBER SELECT COMPONENT --
-    const NumberSelect = ({ value, onChange, max }) => (
-      <select 
-        value={value} 
-        onChange={e => onChange(parseInt(e.target.value))} 
-        className="mx-1 px-1.5 py-0.5 border rounded bg-white font-mono text-base font-bold shadow-sm cursor-pointer hover:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        {[...Array(max + 1).keys()].map(n => <option key={n} value={n}>{n}</option>)}
-      </select>
-    );
 
     const getAbsoluteCoords = (pivot, blocks) => {
       return blocks.map(b => ({ x: pivot.x + b.x, y: pivot.y + b.y }));
@@ -862,7 +859,7 @@
       // Track Continues and Exits
       const [hasContinued, setHasContinued] = useState(false);
       const [showContinueOffer, setShowContinueOffer] = useState(false);
-      const [showExitConfirmation, setShowExitConfirmation] = useState(false); // NEW STATE
+      const [showExitConfirmation, setShowExitConfirmation] = useState(false); 
 
       // Game Over States
       const [isGameOver, setIsGameOver] = useState(false);
@@ -942,6 +939,17 @@
         if (tutorialStep > 0) return TUTORIAL_LEVELS[tutorialStep];
         return BOUND_LEVEL_VARIATIONS[levelIdx][variationIdx];
       }, [levelIdx, variationIdx, tutorialStep]);
+
+      // Internal component for number selection (Moved here to avoid redeclaration errors)
+      const NumberSelect = ({ value, onChange, max }) => (
+        <select 
+          value={value} 
+          onChange={e => onChange(parseInt(e.target.value))} 
+          className="mx-1 px-1.5 py-0.5 border rounded bg-white font-mono text-base font-bold shadow-sm cursor-pointer hover:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          {[...Array(max + 1).keys()].map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+      );
 
       // Auto-Tab Locking Mechanics
       useEffect(() => {
@@ -1222,11 +1230,20 @@
             if (tutorialStep === 4) {
               setTutorialStep(0);
               setLevelIdx(0);
+              setStatus('playing');
             } else {
               setTutorialStep(tutorialStep + 1);
+              setStatus('playing');
             }
           } else {
-            setLevelIdx(levelIdx + 1);
+            // Fix the out-of-bounds crash if they complete the Bonus Level (index 5) and click next
+            if (levelIdx >= 5) {
+              setShowTrophyCelebration(true);
+              setStatus('playing');
+            } else {
+              setLevelIdx(levelIdx + 1);
+              setStatus('playing');
+            }
           }
       }, [tutorialStep, levelIdx]);
 
@@ -1401,7 +1418,7 @@
         setIsGameOver(false);
         setShowTrophyCelebration(false);
         setShowContinueOffer(false);
-        setShowExitConfirmation(false); // Make sure to close modal on reset
+        setShowExitConfirmation(false); 
         setLevelIdx(0);
         setVariationIdx(0);
         setTutorialStep(0);
@@ -1542,7 +1559,10 @@
             }, 600);
           } else if (level.id === 6) {
             setColorPickerUnlocked(true);
-            setMessage(`Amazing job, ${studentName}! You beat the Bonus Level and unlocked Custom Shape Colors! Choose a new color from the customization panel!`);
+            // Trigger beautiful celebration dialog overlay for the completed Bonus Level!
+            setTimeout(() => {
+              setShowTrophyCelebration(true);
+            }, 600);
           } else {
             setMessage(`Terrific! You completed the objective.${isChallengeMet ? " And you solved the optional Challenge Objective! ⭐" : ""}`);
           }
@@ -1647,7 +1667,7 @@
           ctx.fillText(y, 4, CANVAS_HEIGHT - y * CELL_SIZE - 4);
         }
 
-        // Draw Explicit Red Dotted Mirror Lines
+        // Draw Explicit Dotted Mirror Lines
         if (level.mirrorLines && level.mirrorLines.length > 0) {
           level.mirrorLines.forEach((m, idx) => {
             ctx.strokeStyle = idx === selectedMirrorLineIdx ? '#ef4444' : '#fca5a5'; 
@@ -1715,8 +1735,6 @@
                          pendingState.pivot.y !== pivot.y || 
                          JSON.stringify(pendingState.blocks) !== JSON.stringify(blocks);
         
-        const pivotCanvas = getVertexPos(pivot.x, pivot.y);
-        
         if (isMoving && status === 'playing') {
           const ghostAbs = getAbsoluteCoords(pendingState.pivot, pendingState.blocks);
           
@@ -1759,8 +1777,9 @@
               const dy = pendingState.pivot.y - pivot.y;
               label = `X: ${dx > 0 ? '+' : ''}${dx} | Y: ${dy > 0 ? '+' : ''}${dy}`;
               
+              const pivotCanvas = getVertexPos(pivot.x, pivot.y);
               ctx.beginPath();
-              ctx.moveTo(pivotCanvas.cx, pivotCanvas.cy);
+              ctx.moveTo(pivotCanvas.cx, pivotCanvas.cy); 
               ctx.lineTo(ghostPivotCanvas.cx, ghostPivotCanvas.cy);
               ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)'; 
               ctx.setLineDash([6, 6]);
@@ -1799,6 +1818,8 @@
           ctx.strokeRect(x, y, w, h);
         });
 
+        // Drawing pivot handle using outer scoped pivotCanvas
+        const pivotCanvas = getVertexPos(pivot.x, pivot.y);
         ctx.fillStyle = '#ef4444'; 
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2.5;
@@ -2107,7 +2128,7 @@
           </div>
 
           {/* Main Box Area */}
-          <div className="w-full max-w-[1200px] flex-1 min-h-0 flex flex-col lg:flex-row gap-4 items-stretch justify-center pb-2">
+          <div className="w-full max-w-[1200px] mx-auto flex-1 min-h-0 flex flex-col lg:flex-row items-stretch justify-center gap-4 my-3 overflow-hidden">
             
             {/* LEFT COMPONENT: Board Display Panel */}
             <div className="flex-1 min-h-0 bg-white p-4 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden relative">
@@ -2308,12 +2329,27 @@
                             </div>
                           </div>
                           
-                          <button 
-                            onClick={handleResetToLobby} 
-                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
-                          >
-                            🔙 Back to Main Menu
-                          </button>
+                          <div className="flex flex-col gap-2 w-full">
+                            {difficulty === 'expert' && (
+                              <button 
+                                onClick={() => {
+                                  setDifficulty('narwhal');
+                                  setLevelIdx(0);
+                                  setShowTrophyCelebration(false);
+                                  setStatus('playing');
+                                }}
+                                className="w-full py-3 bg-gradient-to-r from-fuchsia-500 to-indigo-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white font-extrabold text-sm md:text-base rounded-xl shadow-lg transition-transform hover:scale-105"
+                              >
+                                🐋 Play Magical Narwhal Mode!
+                              </button>
+                            )}
+                            <button 
+                              onClick={handleResetToLobby} 
+                              className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-slate-800 font-extrabold text-sm md:text-base rounded-xl shadow-lg transition-transform hover:scale-105"
+                            >
+                              🔙 Back to Main Menu
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center">
@@ -2344,6 +2380,7 @@
                               onClick={() => {
                                 setLevelIdx(5); 
                                 setShowTrophyCelebration(false);
+                                setStatus('playing');
                               }} 
                               className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-amber-950 font-extrabold text-xs md:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
                             >
